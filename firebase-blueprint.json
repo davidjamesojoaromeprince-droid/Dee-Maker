@@ -1,0 +1,161 @@
+{
+  "collections": [
+    {
+      "name": "about",
+      "description": "About section data",
+      "documents": [
+        {
+          "id": "main",
+          "fields": {
+            "title": "string",
+            "story": "string",
+            "yearsExperience": "number",
+            "appsBuilt": "number",
+            "skills": "array"
+          }
+        }
+      ]
+    },
+    {
+      "name": "portfolio",
+      "description": "Portfolio items",
+      "document": {
+        "fields": {
+          "title": "string",
+          "category": "string",
+          "description": "string",
+          "imageUrl": "string",
+          "videoUrl": "string",
+          "techStack": "array",
+          "createdAt": "timestamp",
+          "downloadUrl": "string",
+          "fileName": "string"
+        }
+      }
+    },
+    {
+      "name": "case_studies",
+      "description": "In-depth case studies",
+      "document": {
+        "fields": {
+          "portfolioId": "string",
+          "title": "string",
+          "client": "string",
+          "category": "string",
+          "summary": "string",
+          "problem": "string",
+          "approach": "string",
+          "outcome": "string",
+          "metrics": "array",
+          "imageUrl": "string",
+          "techStack": "array"
+        }
+      }
+    },
+    {
+      "name": "testimonials",
+      "description": "Client testimonials",
+      "document": {
+        "fields": {
+          "clientName": "string",
+          "company": "string",
+          "role": "string",
+          "quote": "string",
+          "rating": "number"
+        }
+      }
+    },
+    {
+      "name": "faqs",
+      "description": "Frequently Asked Questions",
+      "document": {
+        "fields": {
+          "question": "string",
+          "answer": "string",
+          "order": "number"
+        }
+      }
+    },
+    {
+      "name": "my_apps",
+      "description": "Own apps created by the dev",
+      "document": {
+        "fields": {
+          "name": "string",
+          "description": "string",
+          "howItWasMade": "string",
+          "updateNotes": "string",
+          "images": "array",
+          "downloadUrl": "string",
+          "fileName": "string",
+          "createdAt": "timestamp",
+          "updatedAt": "timestamp"
+        }
+      }
+    },
+    {
+      "name": "pricing_tiers",
+      "description": "Service pricing packages",
+      "document": {
+        "fields": {
+          "name": "string",
+          "tagline": "string",
+          "price": "string",
+          "period": "string",
+          "turnaround": "string",
+          "bestFor": "string",
+          "category": "string",
+          "popular": "boolean",
+          "features": "array"
+        }
+      }
+    },
+    {
+      "name": "requests",
+      "description": "Intake forms submitted by users",
+      "document": {
+        "fields": {
+          "name": "string",
+          "phone": "string",
+          "email": "string",
+          "appName": "string",
+          "appDescription": "string",
+          "preferredContact": "string",
+          "heardFrom": "string",
+          "selectedPackage": "string",
+          "paymentStatus": "string",
+          "status": "string",
+          "aiConfirmationMessage": "string",
+          "createdAt": "timestamp",
+          "notes": "string"
+        }
+      }
+    },
+    {
+      "name": "feedback",
+      "description": "Private feedback from visitors",
+      "document": {
+        "fields": {
+          "name": "string",
+          "email": "string",
+          "message": "string",
+          "createdAt": "timestamp"
+        }
+      }
+    },
+    {
+      "name": "settings",
+      "description": "App settings",
+      "documents": [
+        {
+          "id": "email",
+          "fields": {
+            "notifyEmail": "string",
+            "enabled": "boolean",
+            "staleAlertDays": "number"
+          }
+        }
+      ]
+    }
+  ]
+}

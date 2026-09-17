@@ -1,0 +1,8 @@
+{
+  "name": "Dee-Maker Studio",
+  "description": "Premium custom app development and engineering builds by Dee-Maker. Scalable, high-performance web and mobile solutions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
