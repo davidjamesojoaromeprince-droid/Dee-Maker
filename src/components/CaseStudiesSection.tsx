@@ -14,18 +14,21 @@ export const CaseStudiesSection: React.FC<CaseStudiesSectionProps> = ({ caseStud
   if (!caseStudies || caseStudies.length === 0) return null;
 
   return (
-    <section id="case-studies" className="py-16 sm:py-24 bg-slate-50 border-b border-slate-200/80">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="case-studies" className="relative py-20 sm:py-28 bg-[#0B1020] border-b border-indigo-900/40 overflow-hidden">
+      {/* Background ambient glow */}
+      <div className="absolute top-1/2 right-10 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none -translate-y-1/2" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 mb-4">
+          <div className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-white/10 text-cyan-300 border border-white/15 mb-4 backdrop-blur-md">
             {t.caseStudiesBadge}
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
+          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight mb-4">
             {t.caseStudiesTitle}
           </h2>
-          <p className="text-lg text-slate-600 leading-relaxed">
+          <p className="text-lg text-slate-300 font-medium leading-relaxed">
             {t.caseStudiesSub}
           </p>
         </div>
@@ -35,30 +38,30 @@ export const CaseStudiesSection: React.FC<CaseStudiesSectionProps> = ({ caseStud
           {caseStudies.map((cs) => (
             <div
               key={cs.id}
-              className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+              className="bg-slate-900/60 rounded-3xl border border-white/10 backdrop-blur-xl overflow-hidden shadow-2xl hover:border-indigo-500/60 hover:shadow-[0_0_30px_rgba(79,70,229,0.3)] transition-all flex flex-col justify-between group"
             >
               <div>
                 {/* Image & Badge */}
-                <div className="relative h-48 overflow-hidden bg-slate-100">
+                <div className="relative h-48 overflow-hidden bg-slate-950">
                   <img
                     src={cs.imageUrl}
                     alt={cs.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-xs text-white text-[11px] font-semibold px-2.5 py-1 rounded-md">
+                  <div className="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-cyan-300 text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full border border-white/15">
                     {cs.category}
                   </div>
                 </div>
 
                 {/* Content */}
                 <div className="p-6">
-                  <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">
+                  <div className="text-xs font-black text-cyan-400 uppercase tracking-wider mb-1">
                     Client: {cs.client}
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
+                  <h3 className="text-lg font-black text-white mb-2 group-hover:text-cyan-300 transition-colors uppercase tracking-tight">
                     {cs.title}
                   </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed mb-4 line-clamp-3">
+                  <p className="text-xs text-slate-300 font-medium leading-relaxed mb-4 line-clamp-3">
                     {cs.summary}
                   </p>
 
@@ -67,7 +70,7 @@ export const CaseStudiesSection: React.FC<CaseStudiesSectionProps> = ({ caseStud
                     {cs.metrics.slice(0, 3).map((m, idx) => (
                       <span
                         key={idx}
-                        className="text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 rounded-md"
+                        className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-lg"
                       >
                         {m}
                       </span>
@@ -80,11 +83,11 @@ export const CaseStudiesSection: React.FC<CaseStudiesSectionProps> = ({ caseStud
               <div className="px-6 pb-6 pt-0">
                 <button
                   onClick={() => setSelectedCaseStudy(cs)}
-                  className="w-full py-2.5 px-4 rounded-xl bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-bold text-xs border border-slate-200/80 transition-all flex items-center justify-center space-x-1.5 cursor-pointer"
+                  className="w-full py-3 px-4 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-black text-xs uppercase tracking-widest border border-white/15 transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-md"
                 >
-                  <BookOpen className="w-3.5 h-3.5" />
+                  <BookOpen className="w-3.5 h-3.5 text-cyan-300" />
                   <span>{t.caseStudiesReadBtn}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-3.5 h-3.5 text-cyan-300" />
                 </button>
               </div>
 
@@ -96,81 +99,81 @@ export const CaseStudiesSection: React.FC<CaseStudiesSectionProps> = ({ caseStud
 
       {/* Case Study Detail Modal */}
       {selectedCaseStudy && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl border border-slate-100 relative my-8 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
+          <div className="bg-[#0B1020] rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl border border-white/20 relative my-8 max-h-[90vh] overflow-y-auto text-white">
             
             <button
               onClick={() => setSelectedCaseStudy(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors cursor-pointer z-10"
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer z-10 border border-white/15"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="mb-6">
-              <span className="text-xs font-bold text-blue-600 uppercase tracking-wider block mb-1">
+              <span className="text-xs font-black text-cyan-400 uppercase tracking-widest block mb-1">
                 Case Study • {selectedCaseStudy.category}
               </span>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2">
+              <h3 className="text-2xl sm:text-4xl font-black text-white mb-2 uppercase tracking-tight">
                 {selectedCaseStudy.title}
               </h3>
-              <p className="text-sm font-medium text-slate-500">
+              <p className="text-sm font-bold text-slate-400">
                 Client: {selectedCaseStudy.client}
               </p>
             </div>
 
             {/* Metrics Highlight */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8 p-4 bg-blue-50/70 rounded-xl border border-blue-100">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8 p-4 bg-indigo-950/60 rounded-2xl border border-white/15">
               {selectedCaseStudy.metrics.map((metric, i) => (
                 <div key={i} className="text-center">
-                  <div className="text-xs font-bold text-blue-900">{metric}</div>
+                  <div className="text-xs font-black text-cyan-300 uppercase tracking-wider">{metric}</div>
                 </div>
               ))}
             </div>
 
             {/* Structured Problem, Approach, Outcome */}
-            <div className="space-y-6 text-sm text-slate-700 leading-relaxed mb-8">
+            <div className="space-y-6 text-sm text-slate-200 leading-relaxed mb-8">
               
               {/* Problem */}
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2 text-rose-600 flex items-center space-x-1.5">
+              <div className="p-5 bg-slate-900/80 rounded-2xl border border-white/10">
+                <h4 className="text-xs font-black uppercase tracking-wider mb-2 text-rose-400 flex items-center space-x-1.5">
                   <span>The Problem</span>
                 </h4>
-                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed">
                   {selectedCaseStudy.problem}
                 </p>
               </div>
 
               {/* Approach */}
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2 text-blue-600 flex items-center space-x-1.5">
+              <div className="p-5 bg-slate-900/80 rounded-2xl border border-white/10">
+                <h4 className="text-xs font-black uppercase tracking-wider mb-2 text-cyan-400 flex items-center space-x-1.5">
                   <span>Dee-Maker's Engineering Approach</span>
                 </h4>
-                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed">
                   {selectedCaseStudy.approach}
                 </p>
               </div>
 
               {/* Outcome */}
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2 text-emerald-600 flex items-center space-x-1.5">
+              <div className="p-5 bg-slate-900/80 rounded-2xl border border-white/10">
+                <h4 className="text-xs font-black uppercase tracking-wider mb-2 text-emerald-400 flex items-center space-x-1.5">
                   <span>The Measurable Outcome</span>
                 </h4>
-                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed">
                   {selectedCaseStudy.outcome}
                 </p>
               </div>
 
               {/* Tech Stack */}
               <div>
-                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center space-x-1">
-                  <Code2 className="w-3.5 h-3.5 text-slate-400" />
+                <h4 className="text-xs font-black uppercase tracking-wider mb-2 flex items-center space-x-1 text-slate-400">
+                  <Code2 className="w-3.5 h-3.5 text-cyan-400" />
                   <span>Technologies & Architecture</span>
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {selectedCaseStudy.techStack.map((tech, idx) => (
                     <span
                       key={idx}
-                      className="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 text-xs font-semibold border border-slate-200"
+                      className="px-3 py-1 rounded-xl bg-white/10 text-white text-xs font-bold border border-white/15"
                     >
                       {tech}
                     </span>
@@ -181,10 +184,10 @@ export const CaseStudiesSection: React.FC<CaseStudiesSectionProps> = ({ caseStud
             </div>
 
             {/* Modal Footer */}
-            <div className="pt-4 border-t border-slate-200 flex justify-end">
+            <div className="pt-4 border-t border-white/10 flex justify-end">
               <button
                 onClick={() => setSelectedCaseStudy(null)}
-                className="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition-colors cursor-pointer"
+                className="px-6 py-3 rounded-2xl bg-white text-slate-950 font-black text-xs uppercase tracking-widest hover:bg-slate-100 transition-colors cursor-pointer shadow-lg"
               >
                 Close Case Study
               </button>

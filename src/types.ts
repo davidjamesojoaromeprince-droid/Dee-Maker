@@ -1,6 +1,28 @@
 export type RequestStatus = 'New' | 'Contacted' | 'In Progress' | 'Delivered';
 export type PaymentStatus = 'Unpaid' | 'Deposit Paid' | 'Fully Paid';
 
+export type IntakeQuestionType = 'short_text' | 'long_text' | 'select' | 'multi_select' | 'yes_no';
+export type QuestionAppliesTo = 'app' | 'website' | 'both';
+
+export interface IntakeQuestion {
+  id: string;
+  label: string;
+  section: string;
+  type: IntakeQuestionType;
+  options?: string[];
+  required: boolean;
+  appliesTo: QuestionAppliesTo;
+  note?: string;
+  order: number;
+}
+
+export interface QuestionnaireAnswer {
+  questionId: string;
+  label: string;
+  section: string;
+  answer: string | string[];
+}
+
 export interface ProjectRequest {
   id: string;
   name: string;
@@ -17,6 +39,8 @@ export interface ProjectRequest {
   aiConfirmationMessage: string;
   createdAt: string;
   notes?: string;
+  answers?: Record<string, any>;
+  questionnaireAnswers?: QuestionnaireAnswer[];
 }
 
 export interface CaseStudy {
@@ -83,8 +107,13 @@ export interface AboutData {
   yearsExperience: number;
   appsBuilt: number;
   skills: string[];
-  heroImage?: string;
-  heroImageUrl?: string;
+  heroVideoUrl?: string;
+}
+
+export interface SiteData {
+  heroVideoUrl?: string;
+  whatsappNumber?: string;
+  updatedAt?: any;
 }
 
 export interface PrivateFeedback {
@@ -98,6 +127,8 @@ export interface PrivateFeedback {
 
 export interface EmailSettings {
   notifyEmail: string;
+  businessEmail?: string;
+  whatsappNumber?: string;
   enabled: boolean;
   staleAlertDays?: number;
   logs: string[];
@@ -116,6 +147,20 @@ export interface MyApp {
   updatedAt?: string;
 }
 
+export type BookingStatus = 'New' | 'Confirmed' | 'Done';
+
+export interface CallBooking {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  date: string;
+  time: string;
+  topic?: string;
+  status: BookingStatus;
+  createdAt: string;
+}
+
 export interface AppData {
   about: AboutData;
   portfolio: PortfolioItem[];
@@ -124,10 +169,20 @@ export interface AppData {
   pricingTiers?: PricingTier[];
   testimonials: Testimonial[];
   faqs: FAQItem[];
+  intakeQuestions?: IntakeQuestion[];
+  heroVideoUrl?: string;
+  whatsappNumber?: string;
+  businessEmail?: string;
+  bookings?: CallBooking[];
 }
 
 export interface FullProducerData extends AppData {
   requests: ProjectRequest[];
+  bookings?: CallBooking[];
   privateFeedback: PrivateFeedback[];
   emailSettings: EmailSettings;
+  intakeQuestions?: IntakeQuestion[];
+  heroVideoUrl?: string;
+  whatsappNumber?: string;
 }
+

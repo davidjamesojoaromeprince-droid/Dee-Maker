@@ -1,6 +1,232 @@
-import { AppData } from '../types';
+import { AppData, IntakeQuestion } from '../types';
+
+export const defaultIntakeQuestions: IntakeQuestion[] = [
+  // Section 1: Project scope
+  {
+    id: 'q-problem',
+    label: 'What problem is your app/website solving?',
+    section: 'Project scope',
+    type: 'long_text',
+    required: true,
+    appliesTo: 'both',
+    order: 1
+  },
+  {
+    id: 'q-target-user',
+    label: 'Who is the end user / your target customer?',
+    section: 'Project scope',
+    type: 'long_text',
+    required: false,
+    appliesTo: 'both',
+    order: 2
+  },
+  {
+    id: 'q-must-haves',
+    label: 'Core features — MUST-HAVES',
+    section: 'Project scope',
+    type: 'long_text',
+    required: true,
+    appliesTo: 'both',
+    order: 3
+  },
+  {
+    id: 'q-nice-haves',
+    label: 'Core features — NICE-TO-HAVES',
+    section: 'Project scope',
+    type: 'long_text',
+    required: false,
+    appliesTo: 'both',
+    order: 4
+  },
+  {
+    id: 'q-platform',
+    label: 'Platform',
+    section: 'Project scope',
+    type: 'select',
+    options: ['Web', 'iOS', 'Android', 'Cross-platform'],
+    required: false,
+    appliesTo: 'app',
+    order: 5
+  },
+  {
+    id: 'q-references',
+    label: 'Any existing designs, wireframes, or reference apps/websites you like?',
+    section: 'Project scope',
+    type: 'long_text',
+    note: 'Links welcome',
+    required: false,
+    appliesTo: 'both',
+    order: 6
+  },
+
+  // Section 2: Technical and access
+  {
+    id: 'q-domain-choice',
+    label: 'Do you already have a domain name?',
+    section: 'Technical and access',
+    type: 'yes_no',
+    required: false,
+    appliesTo: 'both',
+    order: 7
+  },
+  {
+    id: 'q-domain-name',
+    label: 'Domain name (if yes)',
+    section: 'Technical and access',
+    type: 'short_text',
+    required: false,
+    appliesTo: 'both',
+    order: 8
+  },
+  {
+    id: 'q-hosting',
+    label: 'Do you already have hosting?',
+    section: 'Technical and access',
+    type: 'select',
+    options: ['Yes', 'No', 'Not sure, please set one up for me'],
+    required: false,
+    appliesTo: 'both',
+    order: 9
+  },
+  {
+    id: 'q-apple-account',
+    label: 'Apple Developer account?',
+    section: 'Technical and access',
+    type: 'select',
+    options: ['Yes', 'No', 'Not yet'],
+    required: false,
+    appliesTo: 'app',
+    order: 10
+  },
+  {
+    id: 'q-google-account',
+    label: 'Google Play Console account?',
+    section: 'Technical and access',
+    type: 'select',
+    options: ['Yes', 'No', 'Not yet'],
+    required: false,
+    appliesTo: 'app',
+    order: 11
+  },
+  {
+    id: 'q-3rd-services',
+    label: 'Which third-party services do you need?',
+    section: 'Technical and access',
+    type: 'multi_select',
+    options: ['Payments (Stripe/Paystack)', 'Maps', 'Sign-in/Auth', 'Email', 'SMS', 'Other'],
+    required: false,
+    appliesTo: 'both',
+    order: 12
+  },
+  {
+    id: 'q-3rd-details',
+    label: 'Third-party service details (optional)',
+    section: 'Technical and access',
+    type: 'short_text',
+    required: false,
+    appliesTo: 'both',
+    order: 13
+  },
+  {
+    id: 'q-database-pref',
+    label: 'Database or backend preferences, if any',
+    section: 'Technical and access',
+    type: 'short_text',
+    required: false,
+    appliesTo: 'both',
+    order: 14
+  },
+  {
+    id: 'q-brand-assets',
+    label: 'Existing brand assets: logo, colors, fonts, content/copy',
+    section: 'Technical and access',
+    type: 'short_text',
+    note: 'You can send files later',
+    required: false,
+    appliesTo: 'both',
+    order: 15
+  },
+
+  // Section 3: Business logic
+  {
+    id: 'q-user-roles',
+    label: 'User roles (admin, regular user, etc.) and what each can do',
+    section: 'Business logic',
+    type: 'long_text',
+    required: false,
+    appliesTo: 'both',
+    order: 16
+  },
+  {
+    id: 'q-monetization',
+    label: 'Payment / monetization model, if any',
+    section: 'Business logic',
+    type: 'long_text',
+    required: false,
+    appliesTo: 'both',
+    order: 17
+  },
+  {
+    id: 'q-compliance',
+    label: 'Data you need to store, and any compliance concerns such as user data or payments',
+    section: 'Business logic',
+    type: 'long_text',
+    required: false,
+    appliesTo: 'both',
+    order: 18
+  },
+
+  // Section 4: Practical / contract
+  {
+    id: 'q-budget',
+    label: 'Budget',
+    section: 'Practical / contract',
+    type: 'short_text',
+    required: false,
+    appliesTo: 'both',
+    order: 19
+  },
+  {
+    id: 'q-timeline',
+    label: 'Timeline / deadline',
+    section: 'Practical / contract',
+    type: 'short_text',
+    required: false,
+    appliesTo: 'both',
+    order: 20
+  },
+  {
+    id: 'q-ip-ownership',
+    label: 'Who should own the code/IP after delivery?',
+    section: 'Practical / contract',
+    type: 'select',
+    options: ['Me (the client)', 'Dee-Maker until fully paid', "Let's discuss"],
+    required: false,
+    appliesTo: 'both',
+    order: 21
+  },
+  {
+    id: 'q-maintenance',
+    label: 'Maintenance / support expectations after launch',
+    section: 'Practical / contract',
+    type: 'long_text',
+    required: false,
+    appliesTo: 'both',
+    order: 22
+  },
+  {
+    id: 'q-contact-person',
+    label: 'Point of contact for approvals and feedback (name + phone/email)',
+    section: 'Practical / contract',
+    type: 'short_text',
+    required: false,
+    appliesTo: 'both',
+    order: 23
+  }
+];
 
 export const initialDefaultData: AppData = {
+  intakeQuestions: defaultIntakeQuestions,
   about: {
     title: "Independent Mobile & Web App Developer",
     story: "At Dee-Maker Studio, we specialize in designing, building, and deploying custom mobile apps (iOS & Android) and web applications for startups, small businesses, and founders.\n\nOver the past 6 years, we've delivered over 24 production apps — ranging from real-time logistics tools to SaaS platforms and health trackers. Our focus is straightforward: clear communication, rapid prototyping, clean code, and zero technical bloat.\n\nWhen you work with Dee-Maker, you collaborate directly with dedicated software engineers from initial wireframe to App Store launch.",

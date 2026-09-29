@@ -14,18 +14,18 @@ export const Footer: React.FC<FooterProps> = ({ onOpenProducerPortal, isProducer
   };
 
   return (
-    <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
+    <footer className="bg-[#0B1020] text-slate-400 py-12 border-t border-indigo-900/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-8 border-b border-slate-800">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-8 border-b border-white/10">
           {/* Brand Col */}
           <div className="md:col-span-5 space-y-3">
             <div className="flex items-center space-x-2.5 text-white">
-              <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
-                <Smartphone className="w-4 h-4" />
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-md border border-white/20">
+                <Smartphone className="w-4.5 h-4.5" />
               </div>
-              <span className="font-bold text-lg text-white tracking-tight">Dee-Maker</span>
+              <span className="font-black text-xl text-white tracking-tight">DEE-MAKER<span className="text-pink-500">.</span></span>
             </div>
-            <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
+            <p className="text-xs text-slate-400 font-medium leading-relaxed max-w-sm">
               {t.footerRights}
             </p>
           </div>

@@ -74,7 +74,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProducerPrompt, onOpenAuth
   return (
     <nav className={`fixed left-0 right-0 top-0 z-50 transition-all duration-500 ease-out ${
       isScrolled 
-        ? 'bg-white/90 py-3 shadow-[0_12px_32px_rgba(37,99,235,0.06),0_2px_8px_rgba(0,0,0,0.04)] backdrop-blur-xl border-b border-slate-200/60' 
+        ? 'bg-[#0B1020]/85 py-3 shadow-[0_12px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl border-b border-indigo-900/40' 
         : 'bg-transparent py-5'
     }`}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -86,7 +86,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProducerPrompt, onOpenAuth
             whileTap={tapScale}
             className="flex items-center gap-2.5 group focus:outline-none cursor-pointer"
           >
-            <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl shadow-[0_8px_20px_-4px_rgba(37,99,235,0.45)] transition-all group-hover:shadow-[0_12px_28px_-4px_rgba(37,99,235,0.6)]">
+            <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl shadow-[0_8px_20px_-4px_rgba(37,99,235,0.6)] transition-all group-hover:shadow-[0_12px_28px_-4px_rgba(124,58,237,0.8)] border border-white/20">
               <DeeMakerLogo size={44} />
               <motion.div
                 key={animKey}
@@ -96,8 +96,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProducerPrompt, onOpenAuth
                 transition={{ duration: 1.2, ease: 'easeInOut' }}
               />
             </div>
-            <span className="text-2xl font-black tracking-tighter text-slate-900 font-display">
-              DEE-MAKER<span className="text-blue-600">.</span>
+            <span className="text-2xl font-black tracking-tighter font-display text-white">
+              DEE-MAKER<span className="text-pink-500">.</span>
             </span>
           </motion.button>
 
@@ -109,23 +109,23 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProducerPrompt, onOpenAuth
                   key={link.name}
                   href={link.href}
                   onClick={(e) => handleNavClick(e, link.href)}
-                  whileHover={{ y: -2, color: '#2563eb' }}
+                  whileHover={{ y: -2, color: '#38bdf8' }}
                   whileTap={tapScale}
-                  className="text-sm font-bold text-slate-600 transition-colors hover:text-blue-600 cursor-pointer"
+                  className="text-sm font-bold transition-colors cursor-pointer text-slate-200 hover:text-white"
                 >
                   {link.name}
                 </motion.a>
               ))}
             </div>
             
-            <div className="flex items-center gap-3 border-l border-slate-200/80 pl-6">
+            <div className="flex items-center gap-3 border-l border-white/20 pl-6 transition-colors">
               {user ? (
                 <div className="relative">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={tapScale}
                     onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                    className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-100/60 shadow-xs cursor-pointer"
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-950 text-indigo-300 hover:bg-indigo-900 transition-colors border border-indigo-700/60 shadow-xs cursor-pointer"
                   >
                     {user.email?.[0].toUpperCase() ?? <User size={20} />}
                   </motion.button>
@@ -137,17 +137,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProducerPrompt, onOpenAuth
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={springTransition}
-                        className="absolute right-0 mt-3 w-56 origin-top-right rounded-2xl bg-white p-2 shadow-2xl ring-1 ring-slate-900/5 border border-slate-100"
+                        className="absolute right-0 mt-3 w-56 origin-top-right rounded-2xl bg-slate-900 p-2 shadow-2xl ring-1 ring-white/10 border border-slate-800 text-white"
                       >
-                        <div className="px-4 py-3 border-b border-slate-100 mb-1">
+                        <div className="px-4 py-3 border-b border-slate-800 mb-1">
                           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Signed in as</p>
-                          <p className="truncate text-sm font-bold text-slate-900">{user.email}</p>
+                          <p className="truncate text-sm font-bold text-white">{user.email}</p>
                         </div>
                         <motion.button
-                          whileHover={{ x: 4, backgroundColor: 'rgba(254, 242, 242, 1)' }}
+                          whileHover={{ x: 4, backgroundColor: 'rgba(225, 29, 72, 0.2)' }}
                           whileTap={tapScale}
                           onClick={handleSignOut}
-                          className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-bold text-rose-600 transition-colors cursor-pointer"
+                          className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-bold text-rose-400 transition-colors cursor-pointer"
                         >
                           <LogOut size={18} />
                           Sign Out
@@ -161,7 +161,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProducerPrompt, onOpenAuth
                   whileHover={{ scale: 1.05 }}
                   whileTap={tapScale}
                   onClick={onOpenAuth}
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 border border-white/20 backdrop-blur-xs transition-colors cursor-pointer"
                   title="Sign In"
                 >
                   <User size={18} />
@@ -173,7 +173,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProducerPrompt, onOpenAuth
                   whileHover={{ scale: 1.03, y: -1 }}
                   whileTap={tapScale}
                   onClick={onOpenIntake}
-                  className="flex items-center gap-2 rounded-2xl bg-slate-900 hover:bg-slate-800 px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white shadow-md transition-all cursor-pointer"
+                  className="flex items-center gap-2 rounded-2xl px-5 py-2.5 text-xs font-black uppercase tracking-widest shadow-md transition-all cursor-pointer bg-white hover:bg-slate-100 text-slate-950"
                 >
                   <span>Start Project</span>
                   <Send size={13} />
@@ -181,19 +181,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProducerPrompt, onOpenAuth
               )}
               
               <motion.button
-                whileHover={{ 
-                  scale: 1.03, 
-                  y: -1,
-                  boxShadow: '0 14px 28px -6px rgba(37, 99, 235, 0.35), 0 4px 10px -2px rgba(245, 158, 11, 0.15)'
-                }}
+                whileHover={{ scale: 1.03, y: -1 }}
                 whileTap={tapScale}
                 transition={springTransition}
                 onClick={onOpenProducerPrompt}
-                className="group relative flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-600 px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-blue-500/25 transition-all cursor-pointer overflow-hidden"
+                className="glow-btn group relative flex items-center gap-2 rounded-2xl px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white shadow-lg cursor-pointer border border-white/20 overflow-hidden"
               >
                 <span className="relative z-10">Book Call</span>
-                <PhoneCall size={14} className="relative z-10 transition-transform group-hover:rotate-12" />
-                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <PhoneCall size={14} className="relative z-10 transition-transform group-hover:rotate-12 text-cyan-300" />
               </motion.button>
             </div>
           </div>
@@ -240,7 +235,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProducerPrompt, onOpenAuth
             )}
             <button 
               onClick={() => setIsOpen(!isOpen)}
-              className="rounded-xl p-2 text-slate-600 hover:bg-slate-100 transition-colors"
+              className="rounded-xl p-2 transition-colors text-white hover:bg-white/10"
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -255,7 +250,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProducerPrompt, onOpenAuth
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden bg-white lg:hidden border-t border-slate-100 shadow-2xl"
+            className="overflow-hidden bg-[#0B1020]/95 backdrop-blur-2xl lg:hidden border-t border-indigo-900/40 shadow-2xl text-white"
           >
             <div className="space-y-1 px-4 pb-6 pt-4">
               {NAV_LINKS.map((link) => (
@@ -263,24 +258,24 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProducerPrompt, onOpenAuth
                   key={link.name}
                   href={link.href}
                   onClick={(e) => handleNavClick(e, link.href)}
-                  className="block rounded-xl px-4 py-3 text-base font-bold text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors cursor-pointer"
+                  className="block rounded-xl px-4 py-3 text-base font-bold text-slate-200 hover:bg-white/10 hover:text-cyan-400 transition-colors cursor-pointer"
                 >
                   {link.name}
                 </a>
               ))}
               <div className="pt-4 flex flex-col gap-3">
                 {user ? (
-                  <div className="rounded-2xl border border-slate-200 p-4 bg-slate-50/70 space-y-3">
+                  <div className="rounded-2xl border border-white/15 p-4 bg-white/5 backdrop-blur-md space-y-3">
                     <div>
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Signed in as</p>
-                      <p className="text-sm font-black text-slate-900 truncate">{user.displayName || user.email}</p>
+                      <p className="text-sm font-black text-white truncate">{user.displayName || user.email}</p>
                     </div>
                     <button
                       onClick={() => {
                         handleSignOut();
                         setIsOpen(false);
                       }}
-                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 px-4 py-2.5 text-sm font-bold text-rose-600 transition-colors cursor-pointer"
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 px-4 py-2.5 text-sm font-bold text-rose-300 transition-colors cursor-pointer"
                     >
                       <LogOut size={16} />
                       Log Out
@@ -292,7 +287,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProducerPrompt, onOpenAuth
                       onOpenAuth();
                       setIsOpen(false);
                     }}
-                    className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50"
+                    className="flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-bold text-white hover:bg-white/20"
                   >
                     <User size={18} />
                     Sign In
@@ -304,7 +299,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProducerPrompt, onOpenAuth
                       onOpenIntake();
                       setIsOpen(false);
                     }}
-                    className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3.5 text-sm font-black uppercase tracking-widest text-white shadow-md"
+                    className="flex items-center justify-center gap-2 rounded-xl bg-white text-slate-950 px-4 py-3.5 text-sm font-black uppercase tracking-widest shadow-md hover:bg-slate-100"
                   >
                     Start Project
                     <Send size={16} />
@@ -315,10 +310,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProducerPrompt, onOpenAuth
                     onOpenProducerPrompt();
                     setIsOpen(false);
                   }}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3.5 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-blue-500/20"
+                  className="glow-btn flex items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-black uppercase tracking-widest text-white shadow-lg border border-white/20"
                 >
                   Book a Call
-                  <PhoneCall size={18} />
+                  <PhoneCall size={18} className="text-cyan-300" />
                 </button>
               </div>
             </div>

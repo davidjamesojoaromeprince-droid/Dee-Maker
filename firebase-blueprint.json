@@ -132,6 +132,22 @@
       }
     },
     {
+      "name": "call_bookings",
+      "description": "15-minute intro call bookings",
+      "document": {
+        "fields": {
+          "name": "string",
+          "email": "string",
+          "phone": "string",
+          "date": "string",
+          "time": "string",
+          "topic": "string",
+          "status": "string",
+          "createdAt": "timestamp"
+        }
+      }
+    },
+    {
       "name": "feedback",
       "description": "Private feedback from visitors",
       "document": {
@@ -151,11 +167,28 @@
           "id": "email",
           "fields": {
             "notifyEmail": "string",
+            "businessEmail": "string",
             "enabled": "boolean",
             "staleAlertDays": "number"
           }
         }
       ]
+    },
+    {
+      "name": "intake_questions",
+      "description": "Customizable customer project intake questions",
+      "document": {
+        "fields": {
+          "label": "string",
+          "section": "string",
+          "type": "string",
+          "options": "array",
+          "required": "boolean",
+          "appliesTo": "string",
+          "note": "string",
+          "order": "number"
+        }
+      }
     }
   ]
 }

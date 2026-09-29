@@ -17,7 +17,6 @@ import { WebsitesSection } from './components/WebsitesSection';
 import { Footer } from './components/Footer';
 import { FaqDetailPage } from './components/FaqDetailPage';
 import { FloatingBookCall } from './components/FloatingBookCall';
-import { DeeMakerLogo } from './components/DeeMakerLogo';
 import { CardSkeleton, PricingSkeleton, Skeleton } from './components/Skeleton';
 import { AppData, FAQItem, PortfolioItem, Testimonial, PricingTier, CaseStudy, MyApp } from './types';
 import { auth, db } from './lib/firebaseClient';
@@ -102,8 +101,6 @@ export default function App() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const hasHeroImage = !!(appData.about.heroImageUrl || appData.about.heroImage);
-
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
@@ -130,8 +127,16 @@ export default function App() {
           const myAppsSnap = await getDocs(collection(db, 'my_apps'));
           const caseStudiesSnap = await getDocs(collection(db, 'case_studies'));
 
+          let heroVidUrl = (aboutDoc.data() as any)?.heroVideoUrl || '';
+          try {
+            const siteDoc = await getDoc(doc(db, 'siteData', 'main'));
+            if (siteDoc.exists() && siteDoc.data()?.heroVideoUrl !== undefined) {
+              heroVidUrl = siteDoc.data()?.heroVideoUrl;
+            }
+          } catch (_) {}
+
           const firestoreData: AppData = {
-            about: aboutDoc.data() as any,
+            about: { ...(aboutDoc.data() as any), heroVideoUrl: heroVidUrl },
             portfolio: portfolioSnap.docs.map(d => ({ id: d.id, ...d.data() })) as PortfolioItem[],
             testimonials: testimonialsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Testimonial[],
             faqs: faqsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as FAQItem[],
@@ -286,77 +291,77 @@ export default function App() {
           animate="visible"
         >
         {/* Hero Section */}
-        <section className="relative min-h-[95vh] pt-32 pb-20 overflow-hidden flex items-center">
-        {/* Ambient Liquid Gradient Flourishes */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[-10%] right-[-5%] w-[750px] h-[750px] bg-gradient-to-br from-blue-400/20 via-indigo-400/15 to-transparent rounded-full blur-[120px] animate-float-slow" />
-          <div className="absolute bottom-[-10%] left-[-5%] w-[650px] h-[650px] bg-gradient-to-tr from-sky-300/20 via-blue-500/10 to-transparent rounded-full blur-[110px] animate-float-reverse" />
-          <div className="absolute top-[30%] left-[20%] w-[450px] h-[450px] bg-gradient-to-br from-amber-400/10 via-rose-300/10 to-transparent rounded-full blur-[130px] animate-pulse-glow" />
+        <section 
+          className="relative min-h-[95vh] pt-32 pb-20 overflow-hidden flex items-center bg-[#0B1020] border-b border-indigo-900/40"
+        >
+          {/* Hero Background Media: Looping Video or Ken Burns Photo */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+            {appData.about.heroVideoUrl ? (
+              <video
+                key={appData.about.heroVideoUrl}
+                src={appData.about.heroVideoUrl}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                poster="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1920&q=80"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div 
+                className="w-full h-full bg-cover bg-center animate-ken-burns"
+                style={{
+                  backgroundImage: `url('https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1920&q=80')`,
+                  backgroundPosition: 'center',
+                  backgroundSize: 'cover'
+                }}
+              />
+            )}
+            {/* Colorful Dark Gradient Overlay so bold white text stays readable */}
+            <div 
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(135deg, rgba(10, 20, 80, 0.78) 0%, rgba(76, 29, 149, 0.65) 100%)'
+              }}
+            />
+          </div>
+
+        {/* Ambient Glow Flourishes */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-1">
+          <div className="absolute top-[-10%] right-[-5%] w-[750px] h-[750px] bg-blue-500/15 rounded-full blur-[130px] animate-float-slow" />
+          <div className="absolute bottom-[-10%] left-[-5%] w-[650px] h-[650px] bg-indigo-500/15 rounded-full blur-[120px] animate-float-reverse" />
+          <div className="absolute top-[30%] left-[20%] w-[450px] h-[450px] bg-sky-400/10 rounded-full blur-[140px] animate-pulse-glow" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className={hasHeroImage ? "grid lg:grid-cols-2 gap-12 lg:gap-16 items-center" : ""}>
-              {hasHeroImage && (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.92, y: 20 }}
-                  whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                  className="relative order-1 lg:order-2 max-w-sm sm:max-w-md lg:max-w-[450px] mx-auto w-full mb-4 lg:mb-0"
-                >
-                  {/* Rounded square silhouette glow tracing the photo frame */}
-                  <div className="absolute inset-0 rounded-[36px] sm:rounded-[40px] bg-gradient-to-tr from-blue-600/35 to-indigo-600/35 blur-2xl animate-rounded-glow pointer-events-none" />
-
-                  <div className="relative z-10 rounded-[36px] sm:rounded-[40px] border-4 sm:border-8 border-white bg-slate-100 shadow-[0_24px_60px_-15px_rgba(37,99,235,0.25)] overflow-hidden aspect-[4/5] group transition-all duration-700">
-                    <img 
-                      src={appData.about.heroImageUrl || appData.about.heroImage} 
-                      alt="Dee-Maker - Full Stack App Studio"
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-blue-950/40 via-transparent to-transparent pointer-events-none" />
-                    
-                    {/* Corner Logo Badge with shape-matched pulse/glow */}
-                    <div className="absolute bottom-5 left-5 z-20 flex items-center gap-2.5 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-xl border border-white/40">
-                      <div className="relative">
-                        <div className="absolute inset-0 rounded-xl bg-blue-500/30 blur-xs animate-pulse" />
-                        <DeeMakerLogo size={28} className="relative z-10" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">Verified Studio</span>
-                        <span className="text-xs font-black text-slate-900">Dee-Maker</span>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={staggerContainer}
-              className={hasHeroImage ? "order-2 lg:order-1" : "max-w-3xl lg:max-w-4xl"}
-            >
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 z-10 w-full">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+            className="max-w-3xl lg:max-w-4xl"
+          >
               <motion.div 
                 variants={fadeInReveal}
                 whileHover={{ scale: 1.03 }}
                 whileTap={tapScale}
-                className="inline-flex items-center gap-2.5 rounded-full bg-blue-50/90 border border-blue-200/60 px-4 py-2 text-sm font-bold text-blue-600 mb-8 shadow-xs backdrop-blur-xs cursor-default"
+                className="inline-flex items-center gap-2.5 rounded-full bg-black/40 border border-white/20 px-4 py-2 text-sm font-bold text-blue-300 mb-8 shadow-lg backdrop-blur-md cursor-default"
               >
-                <div className="h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
-                <span>Available for Q4 2026 Sprints</span>
-                <span className="text-amber-500 font-black text-xs">★</span>
+                <div className="h-2 w-2 rounded-full bg-blue-400 animate-pulse" />
+                <span className="text-white font-bold">Available for Q4 2026 Sprints</span>
+                <span className="text-amber-400 font-black text-xs">★</span>
               </motion.div>
               <motion.h1 
                 variants={fadeInReveal}
-                className="text-6xl sm:text-7xl lg:text-8xl font-black tracking-tighter text-slate-900 leading-[0.85] uppercase mb-4 font-display"
+                className="text-6xl sm:text-7xl lg:text-8xl font-black tracking-tighter text-white leading-[0.9] uppercase mb-4 font-display drop-shadow-[0_4px_16px_rgba(0,0,0,0.8)]"
               >
-                I Build <span className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 bg-clip-text text-transparent">Apps</span> <br />
+                I Build <span className="bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-300 bg-clip-text text-transparent">Apps</span> <br />
                 That Scale.
               </motion.h1>
               <motion.p 
                 variants={fadeInReveal}
-                className="mt-8 text-xl font-medium text-slate-600 max-w-xl leading-relaxed mb-6"
+                className="mt-8 text-xl sm:text-2xl font-bold text-white max-w-xl leading-relaxed mb-6 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
               >
                 Full-stack engineering for founders. From zero to App Store in weeks, not months. High-performance, pixel-perfect, and business-ready.
               </motion.p>
@@ -369,12 +374,12 @@ export default function App() {
                     whileHover={{ 
                       scale: 1.03, 
                       y: -2,
-                      boxShadow: '0 16px 32px -8px rgba(37, 99, 235, 0.4), 0 4px 12px -2px rgba(245, 158, 11, 0.15)'
+                      boxShadow: '0 16px 32px -8px rgba(37, 99, 235, 0.6)'
                     }}
                     whileTap={tapScale}
                     transition={springTransition}
                     onClick={() => handleOpenIntake()}
-                    className="rounded-2xl bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-600 px-8 py-5 text-sm font-black uppercase tracking-widest text-white shadow-xl shadow-blue-500/25 hover:from-blue-700 hover:to-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 transition-all cursor-pointer"
+                    className="rounded-2xl bg-blue-600 hover:bg-blue-500 px-8 py-5 text-sm font-black uppercase tracking-widest text-white shadow-2xl shadow-blue-900/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 transition-all cursor-pointer border border-blue-400/40"
                   >
                     Start Your Project
                   </motion.button>
@@ -383,7 +388,7 @@ export default function App() {
                     whileHover={{ scale: 1.025, y: -2 }}
                     whileTap={tapScale}
                     transition={springTransition}
-                    className="rounded-2xl border-2 border-slate-200/80 bg-white/90 backdrop-blur-xs px-8 py-5 text-sm font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 hover:border-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus-visible:ring-offset-2 transition-all shadow-xs"
+                    className="rounded-2xl border-2 border-white/80 bg-white/15 backdrop-blur-md px-8 py-5 text-sm font-black uppercase tracking-widest text-white hover:bg-white hover:text-slate-950 hover:border-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 transition-all shadow-xl cursor-pointer"
                   >
                     View My Work
                   </motion.a>
@@ -391,25 +396,24 @@ export default function App() {
 
                 <motion.div 
                   variants={fadeInReveal}
-                  className="mt-12 flex items-center gap-6 pt-12 border-t border-slate-100/80"
+                  className="mt-12 flex items-center gap-6 pt-12 border-t border-white/20"
                 >
                   <motion.div whileHover={{ y: -2 }} transition={springTransition}>
-                    <p className="text-2xl font-black text-slate-900">{appData.about.yearsExperience}+</p>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Active Clients</p>
+                    <p className="text-3xl font-black text-white drop-shadow-md">{appData.about.yearsExperience}+</p>
+                    <p className="text-xs font-bold text-slate-300 uppercase tracking-widest">Active Clients</p>
                   </motion.div>
-                  <div className="h-8 w-px bg-slate-200/80" />
+                  <div className="h-8 w-px bg-white/20" />
                   <motion.div whileHover={{ y: -2 }} transition={springTransition}>
-                    <p className="text-2xl font-black text-slate-900">{appData.about.appsBuilt}+</p>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Apps Launched</p>
+                    <p className="text-3xl font-black text-white drop-shadow-md">{appData.about.appsBuilt}+</p>
+                    <p className="text-xs font-bold text-slate-300 uppercase tracking-widest">Apps Launched</p>
                   </motion.div>
-                  <div className="h-8 w-px bg-slate-200/80" />
+                  <div className="h-8 w-px bg-white/20" />
                   <motion.div whileHover={{ y: -2 }} transition={springTransition}>
-                    <p className="text-2xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">100%</p>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Client Success</p>
+                    <p className="text-3xl font-black bg-gradient-to-r from-blue-400 to-sky-300 bg-clip-text text-transparent drop-shadow-md">100%</p>
+                    <p className="text-xs font-bold text-slate-300 uppercase tracking-widest">Client Success</p>
                   </motion.div>
                 </motion.div>
               </motion.div>
-          </div>
         </div>
       </section>
 
@@ -686,6 +690,8 @@ export default function App() {
       <BookCallModal 
         isOpen={isBookCallOpen} 
         onClose={() => setIsBookCallOpen(false)} 
+        whatsappNumber={appData.whatsappNumber || '2349070392028'}
+        businessEmail={appData.businessEmail || 'deemakers01@gmail.com'}
       />
     </div>
   );

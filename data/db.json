@@ -1,9 +1,7 @@
 {
   "about": {
-    "title": "Independent Mobile & Web App Developer",
+    "appsBuilt": 3,
     "story": "At Dee-Maker Studio, we specialize in designing, building, and deploying custom mobile apps (iOS & Android) and web applications for startups, small businesses, and founders.\n\nOver the past 6 years, we've delivered over 24 production apps — ranging from real-time logistics tools to SaaS platforms and health trackers. Our focus is straightforward: clear communication, rapid prototyping, clean code, and zero technical bloat.\n\nWhen you work with Dee-Maker, you collaborate directly with dedicated software engineers from initial wireframe to App Store launch.",
-    "yearsExperience": 6,
-    "appsBuilt": 24,
     "skills": [
       "React Native",
       "TypeScript",
@@ -15,7 +13,16 @@
       "Tailwind CSS",
       "REST & GraphQL APIs",
       "App Store Deployment"
-    ]
+    ],
+    "title": "Independent Mobile & Web App Developer",
+    "yearsExperience": 3,
+    "heroImage": "https://res.cloudinary.com/vhbxqrzq/image/upload/v1789671082/dee-maker-uploads/ddhun3og3xxi91cbzrt1.jpg",
+    "heroImageUrl": "https://res.cloudinary.com/vhbxqrzq/image/upload/v1789671082/dee-maker-uploads/ddhun3og3xxi91cbzrt1.jpg",
+    "heroVideoUrl": "https://res.cloudinary.com/vhbxqrzq/video/upload/v1790585035/dee-maker-uploads/nyfifpjseihkfkmndfen.mp4",
+    "updatedAt": {
+      "_seconds": 1790585038,
+      "_nanoseconds": 438000000
+    }
   },
   "portfolio": [
     {
@@ -159,40 +166,7 @@
       "answer": "Yes. We handle developer account setup, test builds (TestFlight / Internal Testing), production submission, and compliance review assets."
     }
   ],
-  "requests": [
-    {
-      "id": "req-101",
-      "name": "Sarah Jenkins",
-      "phone": "+1 (555) 234-5678",
-      "email": "sarah@brightcafes.com",
-      "appName": "BrightCafes Mobile Order",
-      "appDescription": "A mobile ordering app for local coffee shops with loyalty points and curbside pickup notifications.",
-      "preferredContact": "whatsapp",
-      "heardFrom": "LinkedIn / Social Media",
-      "selectedPackage": "Custom Build",
-      "paymentStatus": "Deposit Paid",
-      "status": "New",
-      "aiConfirmationMessage": "Hi Sarah! Dee-Maker team here. I've received your request for the BrightCafes Mobile Order app. Loyalty & curbside ordering sounds like a great concept — I'll review your details and reach out on WhatsApp (+1 555-234-5678) shortly to discuss scope!",
-      "createdAt": "2026-07-23T16:20:00.000Z",
-      "notes": "High potential client with 4 local coffee shop locations."
-    },
-    {
-      "id": "req-102",
-      "name": "Daniel Miller",
-      "phone": "08059264736",
-      "email": "daniel@apexfit.co",
-      "appName": "ApexFit Workout Partner",
-      "appDescription": "Cross-platform workout logger with interval timer and community leaderboards.",
-      "preferredContact": "email",
-      "heardFrom": "Google Search",
-      "selectedPackage": "Simple App / MVP",
-      "paymentStatus": "Unpaid",
-      "status": "New",
-      "aiConfirmationMessage": "Hi Daniel! Thanks for reaching out about ApexFit Workout Partner. I will analyze your feature set and email you with a quote within 24 hours.",
-      "createdAt": "2026-07-20T10:15:00.000Z",
-      "notes": "Sitting in New for > 3 days (stale alert test item)."
-    }
-  ],
+  "requests": [],
   "privateFeedback": [
     {
       "id": "feed-1",
@@ -206,10 +180,17 @@
     "notifyEmail": "deemakers01@gmail.com",
     "enabled": true,
     "staleAlertDays": 3,
+    "businessEmail": "deemakers101@gmail.com",
+    "updatedAt": {
+      "_seconds": 1790576691,
+      "_nanoseconds": 578000000
+    },
     "logs": [
+      "2026-09-28T13:58:05.364Z - Email sent to deemakers01@gmail.com",
       "2026-07-23T16:20:00.000Z - Email alert sent for new request 'BrightCafes Mobile Order' from Sarah Jenkins"
     ]
   },
+  "bookings": [],
   "myApps": [
     {
       "id": "myapp-1789558518604",
@@ -221,9 +202,9 @@
       "howItWasMade": "Paytrack was made and designed by DeeMakers",
       "updateNotes": "",
       "createdAt": "2026-09-16T11:35:18.604Z",
-      "updatedAt": "2026-09-16T12:08:24.361Z",
-      "downloadUrl": "https://mega.nz/file/yionhTCD#lcbrk_2LDz3Z0h39bKN1Les_OQU6oYXazmyKgJNf3bY",
-      "fileName": "PayTrack v.1.0"
+      "fileName": "",
+      "downloadUrl": "",
+      "updatedAt": "2026-09-28T06:03:23.185Z"
     }
   ],
   "pricingTiers": [
@@ -231,7 +212,6 @@
       "id": "price-1",
       "name": "Basic Build ",
       "tagline": "Perfect for validation",
-      "price": "$2000",
       "period": "per project",
       "features": [
         "Custom UI Design",
@@ -241,13 +221,13 @@
       ],
       "turnaround": "3-4 Weeks",
       "bestFor": "Startups & Solopreneurs",
-      "category": "app"
+      "category": "app",
+      "price": "$150.1305"
     },
     {
       "id": "price-2",
       "name": "Business skills",
       "tagline": "The production-ready choice",
-      "price": "$4000",
       "period": "per project",
       "popular": true,
       "features": [
@@ -258,13 +238,13 @@
       ],
       "turnaround": "6-8 Weeks",
       "bestFor": "Growing Businesses",
-      "category": "app"
+      "category": "app",
+      "price": "$300.2611"
     },
     {
       "id": "price-3",
       "name": "Skill Max",
       "tagline": "Maximum scale & performance",
-      "price": "$6000+",
       "period": "per project",
       "features": [
         "Everything in Standard",
@@ -274,9 +254,540 @@
       ],
       "turnaround": "10-12 Weeks",
       "bestFor": "Complex Platforms",
-      "category": "app"
+      "category": "app",
+      "price": "$450.3916"
     }
   ],
-  "test": "success",
-  "timestamp": 1787491846619
+  "siteData": {
+    "about": {
+      "title": "Independent Mobile & Web App Developer",
+      "story": "At Dee-Maker Studio, we specialize in designing, building, and deploying custom mobile apps (iOS & Android) and web applications for startups, small businesses, and founders.\n\nOver the past 6 years, we've delivered over 24 production apps — ranging from real-time logistics tools to SaaS platforms and health trackers. Our focus is straightforward: clear communication, rapid prototyping, clean code, and zero technical bloat.\n\nWhen you work with Dee-Maker, you collaborate directly with dedicated software engineers from initial wireframe to App Store launch.",
+      "yearsExperience": 6,
+      "appsBuilt": 24,
+      "skills": [
+        "React Native",
+        "TypeScript",
+        "Node.js",
+        "Express",
+        "Firebase",
+        "PostgreSQL",
+        "React",
+        "Tailwind CSS",
+        "REST & GraphQL APIs",
+        "App Store Deployment"
+      ]
+    },
+    "portfolio": [
+      {
+        "id": "port-1789558367145",
+        "title": "PayTrack ",
+        "category": "Android",
+        "description": "About PayTrack\nPayTrack is a smart invoicing and business management app built for Nigerian small\nbusiness owners — tailors, plumbers, electricians, shop owners, and service providers who\nneed a simple, reliable way to track money coming in and going out, without the complexity\nof enterprise accounting software.\nKey Features\nProfessional Invoicing — create, send, and track invoices in seconds. Share any\ninvoice as a PDF directly to WhatsApp, email, or SMS with one tap.\nCustomer & Promise Tracking — keep a clean record of every customer and every\n\"promise to pay,\" so nothing gets forgotten.\nAutomatic Payment Reminders — set a due date once, and PayTrack automatically emails\nor texts the customer as it approaches — no manual follow-up needed.\nSecure Online Payments — accept payments directly through the app via Flutterwave,\nNigeria's trusted payment platform.\nExpense Tracking & Real Profit Insight — log business expenses alongside income and\nsee your actual net profit, not just what customers owe you.\nBusiness Analytics — a simple visual dashboard showing revenue trends, your top\ncustomers, and outstanding overdue amounts at a glance.\nInventory & Stock Tracking — track product stock levels and link them directly to\ninvoices, so stock updates automatically as you sell.\nBusiness Search — research anything business-related — industry trends, market\ninfo, ideas — right from inside the app.\nKola, Your Business Assistant — a built-in assistant that helps you navigate the\napp, create invoices, and manage customers by voice or text.\nBank-Level Account Security — real email verification, secure sign-in with Google or\nemail, and password recovery built in.\nBuilt for Nigeria — designed around how Nigerian small businesses actually work, from\nthe ground up.",
+        "imageUrl": "https://res.cloudinary.com/vhbxqrzq/image/upload/v1789558350/dee-maker-uploads/geu0mbkax8tpersgnlvz.png",
+        "videoUrl": "",
+        "downloadUrl": "https://mega.nz/file/yionhTCD#lcbrk_2LDz3Z0h39bKN1Les_OQU6oYXazmyKgJNf3bY",
+        "fileName": "Paytrack.v.1.0",
+        "techStack": [
+          "HTML",
+          "CSS....."
+        ],
+        "createdAt": "2026-09-16T11:32:47.145Z"
+      }
+    ],
+    "caseStudies": [
+      {
+        "id": "cs-1",
+        "portfolioId": "port-1",
+        "title": "FitPulse Health & Workout Tracker",
+        "client": "FitPulse Health",
+        "category": "iOS & Android Mobile App",
+        "summary": "How Dee-Maker built a cross-platform mobile health tracker with offline sync and live biometric telemetry in 5 weeks.",
+        "problem": "FitPulse had a web MVP that users couldn't bring to the gym due to poor mobile web UI and lack of offline connectivity when working out in basements or low-reception areas.",
+        "approach": "Built a native-feel React Native mobile application paired with a local SQLite/AsyncStorage sync queue. Designed custom smooth SVG charting for heart rate zones and simplified workout logging to 2 taps per exercise set.",
+        "outcome": "Successfully launched on iOS App Store and Google Play Store. Reached over 5,000 active users within 60 days with a 4.9-star rating.",
+        "metrics": [
+          "5,000+ Active Users",
+          "4.9/5 Rating",
+          "5 Weeks to Launch",
+          "100% Offline Capable"
+        ],
+        "imageUrl": "https://images.unsplash.com/photo-1510519138161-58446230f71b?auto=format&fit=crop&w=800&q=80",
+        "techStack": [
+          "React Native",
+          "TypeScript",
+          "Firebase Auth",
+          "SQLite",
+          "Tailwind"
+        ]
+      },
+      {
+        "id": "cs-2",
+        "portfolioId": "port-2",
+        "title": "SwiftLend Peer-to-Peer Rental Portal",
+        "client": "SwiftLend Inc.",
+        "category": "Full-Stack Web Marketplace",
+        "summary": "Building an automated tool rental marketplace with Stripe Connect escrow and real-time availability calendar.",
+        "problem": "Equipment owners and contractors were losing deals due to slow manual email bookings and double-booking conflicts.",
+        "approach": "Engineered a custom React & Node.js marketplace with Stripe Connect automated payouts, instant identity verification, and conflict-free booking calendar constraints.",
+        "outcome": "Processed over $120,000 in rental equipment volume during the first 90 days following launch.",
+        "metrics": [
+          "$120k+ Rental Volume",
+          "0 Booking Conflicts",
+          "6-Week Delivery",
+          "Stripe Escrow Integrated"
+        ],
+        "imageUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80",
+        "techStack": [
+          "React",
+          "Node.js",
+          "Express",
+          "PostgreSQL",
+          "Stripe Connect"
+        ]
+      },
+      {
+        "id": "cs-3",
+        "portfolioId": "port-3",
+        "title": "OmniRoute Fleet Dispatcher",
+        "client": "Vance Logistics",
+        "category": "Real-Time Fleet Operations Dashboard",
+        "summary": "Transitioning a regional logistics company from paper dispatch slips to a sub-second WebSocket dashboard.",
+        "problem": "Dispatchers were spending 3+ hours daily making phone calls to update driver statuses and route changes.",
+        "approach": "Created a high-density React control room dashboard connected via WebSockets to driver GPS updates with automated route re-calculation and instant SMS dispatch alerts.",
+        "outcome": "Reduced fleet dispatch delay by 42% and saved dispatchers an estimated 18 hours per week in manual calls.",
+        "metrics": [
+          "42% Faster Dispatch",
+          "18 Hours/Wk Saved",
+          "15 Active Dispatch Centers",
+          "Sub-200ms Telemetry"
+        ],
+        "imageUrl": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80",
+        "techStack": [
+          "TypeScript",
+          "React",
+          "Node.js",
+          "WebSockets",
+          "Tailwind CSS"
+        ]
+      }
+    ],
+    "testimonials": [
+      {
+        "id": "test-1",
+        "clientName": "Marcus Vance",
+        "company": "Vance Logistics",
+        "role": "Operations Director",
+        "quote": "Dee-Maker took our manual paper-dispatch system and built an intuitive web portal in 5 weeks. Our driver efficiency increased immediately.",
+        "rating": 5
+      },
+      {
+        "id": "test-2",
+        "clientName": "Elena Rostova",
+        "company": "FitPulse Health",
+        "role": "Founder & CEO",
+        "quote": "Working with Dee-Maker felt like having a co-founder CTO. Clear about timelines, caught edge cases early, and launched our iOS app seamlessly.",
+        "rating": 5
+      },
+      {
+        "id": "test-3",
+        "clientName": "James O'Connor",
+        "company": "SwiftLend",
+        "role": "Product Manager",
+        "quote": "Zero fluff, great communication, and pristine code. Dee-Maker is our go-to studio for every major product feature update.",
+        "rating": 5
+      }
+    ],
+    "faqs": [
+      {
+        "id": "faq-1",
+        "question": "How does your project pricing work?",
+        "answer": "We offer fixed-scope milestone quotes for well-defined MVPs and platforms, as well as weekly sprint contracts for ongoing app and web development. Every project includes a detailed scope breakdown before any agreement."
+      },
+      {
+        "id": "faq-2",
+        "question": "What is your typical project turnaround time?",
+        "answer": "A focused MVP app usually takes 3 to 6 weeks from initial wireframes to test builds. Larger platforms with complex backend infrastructure typically take 8 to 12 weeks."
+      },
+      {
+        "id": "faq-3",
+        "question": "How does the development process work?",
+        "answer": "1. Scope & Design Sync: We finalize core user flows.\n2. Weekly Sprints: You get a working test build every Friday.\n3. Testing & QA: Rigorous mobile device and browser testing.\n4. Handover & Deployment: App Store submission and server deployment with full source code transfer."
+      },
+      {
+        "id": "faq-4",
+        "question": "Do you assist with App Store and Play Store publishing?",
+        "answer": "Yes. We handle developer account setup, test builds (TestFlight / Internal Testing), production submission, and compliance review assets."
+      }
+    ],
+    "requests": [
+      {
+        "id": "req-101",
+        "name": "Sarah Jenkins",
+        "phone": "+1 (555) 234-5678",
+        "email": "sarah@brightcafes.com",
+        "appName": "BrightCafes Mobile Order",
+        "appDescription": "A mobile ordering app for local coffee shops with loyalty points and curbside pickup notifications.",
+        "preferredContact": "whatsapp",
+        "heardFrom": "LinkedIn / Social Media",
+        "selectedPackage": "Custom Build",
+        "paymentStatus": "Deposit Paid",
+        "status": "New",
+        "aiConfirmationMessage": "Hi Sarah! Dee-Maker team here. I've received your request for the BrightCafes Mobile Order app. Loyalty & curbside ordering sounds like a great concept — I'll review your details and reach out on WhatsApp (+1 555-234-5678) shortly to discuss scope!",
+        "createdAt": "2026-07-23T16:20:00.000Z",
+        "notes": "High potential client with 4 local coffee shop locations."
+      },
+      {
+        "id": "req-102",
+        "name": "Daniel Miller",
+        "phone": "08059264736",
+        "email": "daniel@apexfit.co",
+        "appName": "ApexFit Workout Partner",
+        "appDescription": "Cross-platform workout logger with interval timer and community leaderboards.",
+        "preferredContact": "email",
+        "heardFrom": "Google Search",
+        "selectedPackage": "Simple App / MVP",
+        "paymentStatus": "Unpaid",
+        "status": "New",
+        "aiConfirmationMessage": "Hi Daniel! Thanks for reaching out about ApexFit Workout Partner. I will analyze your feature set and email you with a quote within 24 hours.",
+        "createdAt": "2026-07-20T10:15:00.000Z",
+        "notes": "Sitting in New for > 3 days (stale alert test item)."
+      }
+    ],
+    "privateFeedback": [
+      {
+        "id": "feed-1",
+        "name": "Alex Rivera",
+        "email": "alex.r@techfound.io",
+        "message": "Loved browsing your portfolio! The fleet dispatch app layout is super clean.",
+        "createdAt": "2026-07-22T11:00:00.000Z"
+      }
+    ],
+    "emailSettings": {
+      "notifyEmail": "deemakers01@gmail.com",
+      "enabled": true,
+      "staleAlertDays": 3,
+      "logs": [
+        "2026-07-23T16:20:00.000Z - Email alert sent for new request 'BrightCafes Mobile Order' from Sarah Jenkins"
+      ]
+    },
+    "myApps": [
+      {
+        "id": "myapp-1789558518604",
+        "name": "PayTrack ",
+        "description": "About PayTrack\nPayTrack is a smart invoicing and business management app built for Nigerian small\nbusiness owners — tailors, plumbers, electricians, shop owners, and service providers who\nneed a simple, reliable way to track money coming in and going out, without the complexity\nof enterprise accounting software.\nKey Features\nProfessional Invoicing — create, send, and track invoices in seconds. Share any\ninvoice as a PDF directly to WhatsApp, email, or SMS with one tap.\nCustomer & Promise Tracking — keep a clean record of every customer and every\n\"promise to pay,\" so nothing gets forgotten.\nAutomatic Payment Reminders — set a due date once, and PayTrack automatically emails\nor texts the customer as it approaches — no manual follow-up needed.\nSecure Online Payments — accept payments directly through the app via Flutterwave,\nNigeria's trusted payment platform.\nExpense Tracking & Real Profit Insight — log business expenses alongside income and\nsee your actual net profit, not just what customers owe you.\nBusiness Analytics — a simple visual dashboard showing revenue trends, your top\ncustomers, and outstanding overdue amounts at a glance.\nInventory & Stock Tracking — track product stock levels and link them directly to\ninvoices, so stock updates automatically as you sell.\nBusiness Search — research anything business-related — industry trends, market\ninfo, ideas — right from inside the app.\nKola, Your Business Assistant — a built-in assistant that helps you navigate the\napp, create invoices, and manage customers by voice or text.\nBank-Level Account Security — real email verification, secure sign-in with Google or\nemail, and password recovery built in.\nBuilt for Nigeria — designed around how Nigerian small businesses actually work, from\nthe ground up.",
+        "images": [
+          "https://res.cloudinary.com/vhbxqrzq/image/upload/v1789558463/dee-maker-uploads/h33v2hojqaywfc6uy7fc.png"
+        ],
+        "howItWasMade": "Paytrack was made and designed by DeeMakers",
+        "updateNotes": "",
+        "createdAt": "2026-09-16T11:35:18.604Z",
+        "updatedAt": "2026-09-16T12:08:24.361Z",
+        "downloadUrl": "https://mega.nz/file/yionhTCD#lcbrk_2LDz3Z0h39bKN1Les_OQU6oYXazmyKgJNf3bY",
+        "fileName": "PayTrack v.1.0"
+      }
+    ],
+    "pricingTiers": [
+      {
+        "id": "price-1",
+        "name": "Basic Build ",
+        "tagline": "Perfect for validation",
+        "price": "$2000",
+        "period": "per project",
+        "features": [
+          "Custom UI Design",
+          "Auth & Database",
+          "App Store Submission",
+          "Push Notifications"
+        ],
+        "turnaround": "3-4 Weeks",
+        "bestFor": "Startups & Solopreneurs",
+        "category": "app"
+      },
+      {
+        "id": "price-2",
+        "name": "Business skills",
+        "tagline": "The production-ready choice",
+        "price": "$4000",
+        "period": "per project",
+        "popular": true,
+        "features": [
+          "Everything in MVP",
+          "Admin Dashboard",
+          "Payment Integration",
+          "Analytics API"
+        ],
+        "turnaround": "6-8 Weeks",
+        "bestFor": "Growing Businesses",
+        "category": "app"
+      },
+      {
+        "id": "price-3",
+        "name": "Skill Max",
+        "tagline": "Maximum scale & performance",
+        "price": "$6000+",
+        "period": "per project",
+        "features": [
+          "Everything in Standard",
+          "Complex Backend / Logic",
+          "Multi-role Access Control",
+          "3-Month Free Support"
+        ],
+        "turnaround": "10-12 Weeks",
+        "bestFor": "Complex Platforms",
+        "category": "app"
+      }
+    ],
+    "test": "success",
+    "timestamp": 1787491846619,
+    "heroVideoUrl": "https://res.cloudinary.com/vhbxqrzq/video/upload/v1790585035/dee-maker-uploads/nyfifpjseihkfkmndfen.mp4",
+    "updatedAt": {
+      "_seconds": 1790585037,
+      "_nanoseconds": 874000000
+    }
+  },
+  "intakeQuestions": [
+    {
+      "id": "q-3rd-details",
+      "label": "Third-party service details (optional)",
+      "section": "Technical and access",
+      "type": "short_text",
+      "required": false,
+      "appliesTo": "both",
+      "order": 13
+    },
+    {
+      "id": "q-3rd-services",
+      "label": "Which third-party services do you need?",
+      "section": "Technical and access",
+      "type": "multi_select",
+      "options": [
+        "Payments (Stripe/Paystack)",
+        "Maps",
+        "Sign-in/Auth",
+        "Email",
+        "SMS",
+        "Other"
+      ],
+      "required": false,
+      "appliesTo": "both",
+      "order": 12
+    },
+    {
+      "id": "q-apple-account",
+      "label": "Apple Developer account?",
+      "section": "Technical and access",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Not yet"
+      ],
+      "required": false,
+      "appliesTo": "app",
+      "order": 10
+    },
+    {
+      "id": "q-brand-assets",
+      "label": "Existing brand assets: logo, colors, fonts, content/copy",
+      "section": "Technical and access",
+      "type": "short_text",
+      "note": "You can send files later",
+      "required": false,
+      "appliesTo": "both",
+      "order": 15
+    },
+    {
+      "id": "q-budget",
+      "label": "Budget",
+      "section": "Practical / contract",
+      "type": "short_text",
+      "required": false,
+      "appliesTo": "both",
+      "order": 19
+    },
+    {
+      "id": "q-compliance",
+      "label": "Data you need to store, and any compliance concerns such as user data or payments",
+      "section": "Business logic",
+      "type": "long_text",
+      "required": false,
+      "appliesTo": "both",
+      "order": 18
+    },
+    {
+      "id": "q-contact-person",
+      "label": "Point of contact for approvals and feedback (name + phone/email)",
+      "section": "Practical / contract",
+      "type": "short_text",
+      "required": false,
+      "appliesTo": "both",
+      "order": 23
+    },
+    {
+      "id": "q-database-pref",
+      "label": "Database or backend preferences, if any",
+      "section": "Technical and access",
+      "type": "short_text",
+      "required": false,
+      "appliesTo": "both",
+      "order": 14
+    },
+    {
+      "id": "q-domain-choice",
+      "label": "Do you already have a domain name?",
+      "section": "Technical and access",
+      "type": "yes_no",
+      "required": false,
+      "appliesTo": "both",
+      "order": 7
+    },
+    {
+      "id": "q-domain-name",
+      "label": "Domain name (if yes)",
+      "section": "Technical and access",
+      "type": "short_text",
+      "required": false,
+      "appliesTo": "both",
+      "order": 8
+    },
+    {
+      "id": "q-google-account",
+      "label": "Google Play Console account?",
+      "section": "Technical and access",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Not yet"
+      ],
+      "required": false,
+      "appliesTo": "app",
+      "order": 11
+    },
+    {
+      "id": "q-hosting",
+      "label": "Do you already have hosting?",
+      "section": "Technical and access",
+      "type": "select",
+      "options": [
+        "Yes",
+        "No",
+        "Not sure, please set one up for me"
+      ],
+      "required": false,
+      "appliesTo": "both",
+      "order": 9
+    },
+    {
+      "id": "q-ip-ownership",
+      "label": "Who should own the code/IP after delivery?",
+      "section": "Practical / contract",
+      "type": "select",
+      "options": [
+        "Me (the client)",
+        "Dee-Maker until fully paid",
+        "Let's discuss"
+      ],
+      "required": false,
+      "appliesTo": "both",
+      "order": 21
+    },
+    {
+      "id": "q-maintenance",
+      "label": "Maintenance / support expectations after launch",
+      "section": "Practical / contract",
+      "type": "long_text",
+      "required": false,
+      "appliesTo": "both",
+      "order": 22
+    },
+    {
+      "id": "q-monetization",
+      "label": "Payment / monetization model, if any",
+      "section": "Business logic",
+      "type": "long_text",
+      "required": false,
+      "appliesTo": "both",
+      "order": 17
+    },
+    {
+      "id": "q-must-haves",
+      "label": "Core features — MUST-HAVES",
+      "section": "Project scope",
+      "type": "long_text",
+      "required": true,
+      "appliesTo": "both",
+      "order": 3
+    },
+    {
+      "id": "q-nice-haves",
+      "label": "Core features — NICE-TO-HAVES",
+      "section": "Project scope",
+      "type": "long_text",
+      "required": false,
+      "appliesTo": "both",
+      "order": 4
+    },
+    {
+      "id": "q-platform",
+      "label": "Platform",
+      "section": "Project scope",
+      "type": "select",
+      "options": [
+        "Web",
+        "iOS",
+        "Android",
+        "Cross-platform"
+      ],
+      "required": false,
+      "appliesTo": "app",
+      "order": 5
+    },
+    {
+      "id": "q-problem",
+      "label": "What problem is your app/website solving?",
+      "section": "Project scope",
+      "type": "long_text",
+      "required": true,
+      "appliesTo": "both",
+      "order": 1
+    },
+    {
+      "id": "q-references",
+      "label": "Any existing designs, wireframes, or reference apps/websites you like?",
+      "section": "Project scope",
+      "type": "long_text",
+      "note": "Links welcome",
+      "required": false,
+      "appliesTo": "both",
+      "order": 6
+    },
+    {
+      "id": "q-target-user",
+      "label": "Who is the end user / your target customer?",
+      "section": "Project scope",
+      "type": "long_text",
+      "required": false,
+      "appliesTo": "both",
+      "order": 2
+    },
+    {
+      "id": "q-timeline",
+      "label": "Timeline / deadline",
+      "section": "Practical / contract",
+      "type": "short_text",
+      "required": false,
+      "appliesTo": "both",
+      "order": 20
+    },
+    {
+      "id": "q-user-roles",
+      "label": "User roles (admin, regular user, etc.) and what each can do",
+      "section": "Business logic",
+      "type": "long_text",
+      "required": false,
+      "appliesTo": "both",
+      "order": 16
+    }
+  ]
 }

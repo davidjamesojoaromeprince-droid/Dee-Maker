@@ -1,12 +1,9 @@
 {
-  "projectId": "responsible-pagoda-smbw7",
-  "appId": "1:668629051536:web:a921c11cbeb9f547121015",
-  "apiKey": "AIzaSyCoATnozrOrs19T7ARS8u2qo-S39mGDIPc",
-  "authDomain": "responsible-pagoda-smbw7.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-deemakers-a517c7bd-ec91-4b82-9066-2ff062ea55db",
-  "storageBucket": "responsible-pagoda-smbw7.firebasestorage.app",
-  "messagingSenderId": "668629051536",
-  "measurementId": "",
-  "oAuthClientId": "668629051536-ake5mj9jkkh1i8cojed5qakitn1n0n47.apps.googleusercontent.com",
-  "recaptchaSiteKey": ""
+  "projectId": "deemakers-site",
+  "appId": "1:885290099362:web:b559d1c949947d288cedfb",
+  "apiKey": "AIzaSyAMSV20Yt6IqLGtaZh9jsQcnQqFKx5Bw_o",
+  "authDomain": "deemakers-site.firebaseapp.com",
+  "storageBucket": "deemakers-site.firebasestorage.app",
+  "messagingSenderId": "885290099362",
+  "measurementId": "G-HF04CT8D07"
 }

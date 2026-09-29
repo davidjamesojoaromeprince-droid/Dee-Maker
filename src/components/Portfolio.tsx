@@ -21,16 +21,20 @@ export const Portfolio: React.FC<PortfolioProps> = ({ items, onOpenIntake }) => 
     : items.filter((item) => item.category === selectedCategory);
 
   return (
-    <section id="portfolio" className="py-16 md:py-24 bg-white border-b border-slate-200/80">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-10">
-          <span className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200/50">
+    <section id="portfolio" className="relative py-20 md:py-28 bg-[#0B1020] border-b border-indigo-900/40 overflow-hidden">
+      {/* Ambient background glow */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/15 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-10 w-96 h-96 bg-pink-500/15 rounded-full blur-[120px] pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="text-center max-w-2xl mx-auto mb-12">
+          <span className="text-xs font-bold uppercase tracking-wider text-cyan-300 bg-white/10 px-3.5 py-1.5 rounded-full border border-white/15 backdrop-blur-md">
             {t.portfolioBadge}
           </span>
-          <h2 className="text-3xl font-bold text-slate-900 tracking-tight mt-3">
+          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight mt-4 uppercase">
             {t.portfolioTitle || t.portfolioHeader}
           </h2>
-          <p className="text-slate-600 mt-2">
+          <p className="text-slate-300 mt-2 font-medium">
             {t.portfolioSub || t.portfolioSubheader}
           </p>
 
@@ -41,10 +45,10 @@ export const Portfolio: React.FC<PortfolioProps> = ({ items, onOpenIntake }) => 
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
                     selectedCategory === cat
-                      ? 'bg-blue-600 text-white font-semibold shadow-sm'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      ? 'glow-btn text-white shadow-lg border border-white/20'
+                      : 'bg-white/10 text-slate-300 hover:bg-white/20 border border-white/10'
                   }`}
                 >
                   {cat}
@@ -60,38 +64,38 @@ export const Portfolio: React.FC<PortfolioProps> = ({ items, onOpenIntake }) => 
             return (
               <div
                 key={item.id}
-                className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col group"
+                className="bg-slate-900/60 rounded-3xl border border-white/10 backdrop-blur-xl shadow-2xl hover:border-indigo-500/60 hover:shadow-[0_0_30px_rgba(79,70,229,0.3)] transition-all duration-300 overflow-hidden flex flex-col group"
               >
                 {/* Image Header */}
-                <div className="relative aspect-video bg-slate-100 overflow-hidden">
+                <div className="relative aspect-video bg-slate-950 overflow-hidden">
                   <img
                     src={item.imageUrl || 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=800&q=80'}
                     alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     loading="lazy"
                   />
-                  <span className="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md text-white text-xs font-semibold px-2.5 py-1 rounded-lg">
+                  <span className="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-cyan-300 text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full border border-white/15">
                     {item.category}
                   </span>
 
                   {item.videoUrl && (
                     <button
                       onClick={() => setActiveVideoModal(item.videoUrl)}
-                      className="absolute bottom-3 right-3 inline-flex items-center space-x-1.5 bg-blue-600/90 hover:bg-blue-700 backdrop-blur-xs text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-md transition-colors cursor-pointer"
+                      className="absolute bottom-3 right-3 inline-flex items-center space-x-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black uppercase tracking-wider px-3.5 py-2 rounded-xl shadow-lg transition-colors cursor-pointer border border-white/20"
                     >
-                      <Video className="w-3.5 h-3.5" />
+                      <Video className="w-3.5 h-3.5 text-cyan-300" />
                       <span>{t.portfolioWatchDemo || 'Watch Demo'}</span>
                     </button>
                   )}
                 </div>
 
                 {/* Content Body */}
-                <div className="p-6 flex-1 flex flex-col justify-between">
+                <div className="p-8 flex-1 flex flex-col justify-between">
                   <div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
+                    <h3 className="text-2xl font-black text-white mb-2 group-hover:text-cyan-300 transition-colors uppercase tracking-tight">
                       {item.title}
                     </h3>
-                    <p className="text-slate-600 text-sm leading-relaxed mb-4">
+                    <p className="text-slate-300 text-sm font-medium leading-relaxed mb-6">
                       {item.description}
                     </p>
                   </div>
@@ -99,9 +103,9 @@ export const Portfolio: React.FC<PortfolioProps> = ({ items, onOpenIntake }) => 
                   <div className="space-y-4 pt-2">
                     {/* Tech Stack Pills */}
                     <div>
-                      <div className="flex items-center justify-between text-xs text-slate-500 font-medium mb-2">
-                        <div className="flex items-center space-x-1">
-                          <Code className="w-3.5 h-3.5 text-slate-400" />
+                      <div className="flex items-center justify-between text-xs text-slate-400 font-bold mb-3">
+                        <div className="flex items-center space-x-1.5">
+                          <Code className="w-3.5 h-3.5 text-cyan-400" />
                           <span>Tech Stack:</span>
                         </div>
                         {onOpenIntake && (
@@ -113,7 +117,7 @@ export const Portfolio: React.FC<PortfolioProps> = ({ items, onOpenIntake }) => 
                               tier: 'MVP Mobile Sprint',
                               projectType: 'app'
                             })}
-                            className="text-blue-600 hover:text-blue-800 font-bold hover:underline cursor-pointer"
+                            className="text-cyan-300 hover:text-cyan-200 font-black uppercase tracking-wider text-[11px] hover:underline cursor-pointer"
                           >
                             Request Similar App &rarr;
                           </button>
@@ -123,7 +127,7 @@ export const Portfolio: React.FC<PortfolioProps> = ({ items, onOpenIntake }) => 
                         {item.techStack.map((tech, idx) => (
                           <span
                             key={idx}
-                            className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200/60"
+                            className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-white/10 text-slate-200 border border-white/15"
                           >
                             {tech}
                           </span>

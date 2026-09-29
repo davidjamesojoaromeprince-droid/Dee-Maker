@@ -29,10 +29,10 @@ export const FloatingBookCall: React.FC<FloatingBookCallProps> = ({ onClick }) =
         side === 'left' ? 'left-6' : 'right-6'
       } cursor-grab active:cursor-grabbing select-none`}
     >
-      <div className="relative group flex items-center space-x-1.5 bg-slate-900/95 backdrop-blur-md text-white px-3.5 py-3 rounded-full shadow-2xl shadow-blue-900/40 border border-slate-700/90 hover:border-blue-500 transition-colors">
+      <div className="relative group flex items-center space-x-1.5 bg-[#0B1020]/90 backdrop-blur-xl text-white px-4 py-3 rounded-full shadow-2xl border border-white/20 hover:border-cyan-400 transition-colors">
         {/* Drag Handle Indicator */}
         <div
-          className="p-1 text-slate-500 hover:text-slate-300 rounded cursor-grab active:cursor-grabbing"
+          className="p-1 text-slate-400 hover:text-white rounded cursor-grab active:cursor-grabbing"
           title="Click & Drag to move anywhere on screen"
         >
           <GripVertical className="w-4 h-4" />
@@ -40,8 +40,8 @@ export const FloatingBookCall: React.FC<FloatingBookCallProps> = ({ onClick }) =
 
         {/* Pulse Status Dot */}
         <span className="relative flex h-2.5 w-2.5">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-400"></span>
         </span>
 
         {/* Main Book Call Action Button */}
@@ -49,13 +49,13 @@ export const FloatingBookCall: React.FC<FloatingBookCallProps> = ({ onClick }) =
           whileHover={{ scale: 1.05 }}
           whileTap={tapScale}
           onClick={onClick}
-          className="flex items-center space-x-2 text-xs sm:text-sm font-black uppercase tracking-widest hover:text-blue-400 transition-colors cursor-pointer px-1"
+          className="flex items-center space-x-2 text-xs sm:text-sm font-black uppercase tracking-widest hover:text-cyan-300 transition-colors cursor-pointer px-1"
           title={t.floatingBookCall}
         >
-          <Calendar className="w-4 h-4 text-blue-400 group-hover:text-blue-300 transition-colors" />
+          <Calendar className="w-4 h-4 text-cyan-300 group-hover:text-white transition-colors" />
           <span className="text-white">{t.floatingBookCall}</span>
-          <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-xs">
-            <PhoneCall className="w-3 h-3" />
+          <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md border border-white/20">
+            <PhoneCall className="w-3 h-3 text-cyan-300" />
           </div>
         </motion.button>
 

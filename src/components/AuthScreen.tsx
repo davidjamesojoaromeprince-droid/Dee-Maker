@@ -324,7 +324,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onClose }) => {
               whileTap={{ scale: 0.9 }}
               onClick={onClose}
               aria-label="Close dialog"
-              className="absolute right-4 top-4 z-50 flex items-center justify-center w-10 h-10 rounded-full bg-white text-slate-700 shadow-md border border-slate-200/80 hover:bg-slate-50 hover:text-slate-950 transition-all cursor-pointer"
+              className="absolute right-4 top-4 z-[60] flex items-center justify-center w-10 h-10 rounded-full bg-slate-900/80 text-white shadow-xl border border-white/20 hover:bg-slate-900 hover:text-cyan-400 transition-all cursor-pointer backdrop-blur-md"
             >
               <X size={20} className="stroke-[2.5]" />
             </motion.button>
@@ -419,7 +419,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ isOpen, onClose }) => {
                   x: isSignUp ? '0%' : '100%',
                 }}
                 transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute top-0 left-0 h-full w-1/2 z-20 overflow-hidden bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 shadow-xl"
+                className="absolute top-0 left-0 h-full w-1/2 z-20 overflow-hidden shadow-xl"
+                style={{
+                  backgroundImage: `linear-gradient(135deg, rgba(10, 20, 80, 0.85) 0%, rgba(124, 58, 237, 0.75) 100%), url('https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1200&q=80')`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }}
               >
                 {/* Ambient Glow Orbs */}
                 <div className="absolute -top-12 -right-12 w-64 h-64 rounded-full bg-blue-300/30 blur-3xl pointer-events-none" />

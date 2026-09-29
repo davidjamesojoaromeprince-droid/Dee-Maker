@@ -34,7 +34,12 @@ import {
   Package,
   FileArchive,
   Smartphone,
-  Globe
+  Globe,
+  Copy,
+  ExternalLink,
+  Sparkles,
+  ListOrdered,
+  PhoneCall
 } from 'lucide-react';
 import { db } from '../lib/firebaseClient';
 import { 
@@ -59,9 +64,15 @@ import {
   Testimonial,
   FAQItem,
   AboutData,
-  PrivateFeedback
+  PrivateFeedback,
+  IntakeQuestion,
+  QuestionnaireAnswer,
+  PricingTier,
+  CallBooking,
+  BookingStatus
 } from '../types';
 import { uploadToCloudinaryDirect } from '../lib/cloudinaryUpload';
+import { defaultIntakeQuestions } from '../lib/initialData';
 
 interface ProducerPortalProps {
   isOpen: boolean;
@@ -82,6 +93,7 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
   const [passcodeError, setPasscodeError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [savedToast, setSavedToast] = useState(false);
+  const [claudeToast, setClaudeToast] = useState<string | null>(null);
 
   const triggerSavedNotification = () => {
     setSavedToast(true);
@@ -91,8 +103,8 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
     }
   };
 
-  // Active Tab: 'requests' | 'portfolio' | 'my-apps' | 'pricing' | 'about' | 'testimonials' | 'faqs' | 'feedback' | 'email'
-  const [activeTab, setActiveTab] = useState<'requests' | 'portfolio' | 'my-apps' | 'pricing' | 'about' | 'testimonials' | 'faqs' | 'feedback' | 'email'>('requests');
+  // Active Tab
+  const [activeTab, setActiveTab] = useState<'requests' | 'bookings' | 'questions' | 'portfolio' | 'my-apps' | 'pricing' | 'about' | 'testimonials' | 'faqs' | 'feedback' | 'email'>('requests');
 
   const [producerData, setProducerData] = useState<FullProducerData | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(false);
@@ -100,6 +112,10 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
   // Search & Filter state for Requests
   const [requestSearch, setRequestSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
+
+  // Search & Filter state for Call Bookings
+  const [bookingSearch, setBookingSearch] = useState('');
+  const [bookingStatusFilter, setBookingStatusFilter] = useState<string>('All');
 
   // Selected Request detail view
   const [selectedRequest, setSelectedRequest] = useState<ProjectRequest | null>(null);
@@ -111,179 +127,36 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
     item: Partial<PortfolioItem> | null;
   }>({ isOpen: false, item: null });
 
+  // Intake Question Form State
+  const [questionModal, setQuestionModal] = useState<{
+    isOpen: boolean;
+    item: Partial<IntakeQuestion> | null;
+  }>({ isOpen: false, item: null });
+
   // File Upload states for Portfolio Form
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [isUploadingAppFile, setIsUploadingAppFile] = useState(false);
   const [isUploadingMyAppImage, setIsUploadingMyAppImage] = useState(false);
-  const [isUploadingHeroImage, setIsUploadingHeroImage] = useState(false);
+  const [isUploadingHeroVideo, setIsUploadingHeroVideo] = useState(false);
   const [imageUploadError, setImageUploadError] = useState<string | null>(null);
-  const [heroImageUploadError, setHeroImageUploadError] = useState<string | null>(null);
+  const [heroVideoUploadError, setHeroVideoUploadError] = useState<string | null>(null);
   const [videoUploadError, setVideoUploadError] = useState<string | null>(null);
   const [appFileUploadError, setAppFileUploadError] = useState<string | null>(null);
   const [showManualImageUrl, setShowManualImageUrl] = useState(false);
   const [showManualVideoUrl, setShowManualVideoUrl] = useState(false);
   const [showManualAppUrl, setShowManualAppUrl] = useState(false);
 
-  // Handle Hero Image Upload (Max 30MB)
-  const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Hero Background Video State
+  const [heroVideoUrl, setHeroVideoUrl] = useState<string>('');
+  const [manualHeroVideoUrl, setManualHeroVideoUrl] = useState<string>('');
 
-    if (file.size > 30 * 1024 * 1024) {
-      setHeroImageUploadError('File exceeds the 30MB limit for images/videos.');
-      e.target.value = '';
-      return;
-    }
-
-    setIsUploadingHeroImage(true);
-    setHeroImageUploadError(null);
-
-    try {
-      const data = await uploadToCloudinaryDirect(file, 'image');
-      if (data && data.url) {
-        setAboutForm(prev => ({ ...prev, heroImage: data.url, heroImageUrl: data.url }));
-      } else {
-        setHeroImageUploadError('Upload failed');
-      }
-    } catch (err: any) {
-      setHeroImageUploadError(err?.message || 'Connection error');
-    } finally {
-      setIsUploadingHeroImage(false);
-      e.target.value = '';
-    }
-  };
-
-  // Handle Portfolio Image File Upload (Max 30MB)
-  const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Enforce 30MB file size limit
-    if (file.size > 30 * 1024 * 1024) {
-      setImageUploadError('File exceeds the 30MB limit for images/videos.');
-      e.target.value = '';
-      return;
-    }
-
-    setIsUploadingImage(true);
-    setImageUploadError(null);
-
-    try {
-      const data = await uploadToCloudinaryDirect(file, 'image');
-
-      if (data && data.url) {
-        setPortfolioModal((prev) => ({
-          ...prev,
-          item: { ...prev.item, imageUrl: data.url },
-        }));
-      } else {
-        setImageUploadError('Failed to upload image to Cloudinary.');
-      }
-    } catch (err: any) {
-      setImageUploadError(err.message || 'Error connecting to upload server.');
-    } finally {
-      setIsUploadingImage(false);
-      e.target.value = '';
-    }
-  };
-
-  // Handle Portfolio Video File Upload (Max 30MB)
-  const handleVideoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Enforce 30MB file size limit
-    if (file.size > 30 * 1024 * 1024) {
-      setVideoUploadError('File exceeds the 30MB limit for images/videos.');
-      e.target.value = '';
-      return;
-    }
-
-    setIsUploadingVideo(true);
-    setVideoUploadError(null);
-
-    try {
-      const data = await uploadToCloudinaryDirect(file, 'video');
-
-      if (data && data.url) {
-        setPortfolioModal((prev) => ({
-          ...prev,
-          item: { ...prev.item, videoUrl: data.url },
-        }));
-      } else {
-        setVideoUploadError('Failed to upload video to Cloudinary.');
-      }
-    } catch (err: any) {
-      setVideoUploadError(err.message || 'Error connecting to upload server.');
-    } finally {
-      setIsUploadingVideo(false);
-      e.target.value = '';
-    }
-  };
-
-  // Handle MyApp Image Upload (Max 30MB)
-  const handleMyAppImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 30 * 1024 * 1024) {
-      setImageUploadError('File exceeds the 30MB limit for images/videos.');
-      e.target.value = '';
-      return;
-    }
-    setIsUploadingMyAppImage(true);
-    setImageUploadError(null);
-    try {
-      const data = await uploadToCloudinaryDirect(file, 'image');
-      if (data && data.url) {
-        setMyAppModal(prev => ({
-          ...prev,
-          item: {
-            ...prev.item,
-            images: [...(prev.item?.images || []), data.url]
-          }
-        }));
-      }
-    } catch (err: any) {
-      console.error('MyApp image upload error:', err);
-      setImageUploadError(err.message || 'Failed to upload screenshot.');
-    } finally {
-      setIsUploadingMyAppImage(false);
-      e.target.value = '';
-    }
-  };
-  
-  // Handle MyApp build upload (Max 100MB)
-  const handleMyAppBuildUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 100 * 1024 * 1024) {
-      setAppFileUploadError('File exceeds the 100MB limit for app packages.');
-      e.target.value = '';
-      return;
-    }
-    setIsUploadingAppFile(true);
-    setAppFileUploadError(null);
-    try {
-      const data = await uploadToCloudinaryDirect(file, 'raw');
-      if (data && data.url) {
-        setMyAppModal(prev => ({
-          ...prev,
-          item: {
-            ...prev.item,
-            downloadUrl: data.url,
-            fileName: file.name
-          }
-        }));
-      }
-    } catch (err: any) {
-      console.error('MyApp build upload error:', err);
-      setAppFileUploadError(err.message || 'Failed to upload build file.');
-    } finally {
-      setIsUploadingAppFile(false);
-      e.target.value = '';
-    }
-  };
+  // Email Settings & Business Email & WhatsApp
+  const [notifyEmail, setNotifyEmail] = useState('');
+  const [businessEmail, setBusinessEmail] = useState('yourbusiness@email.com');
+  const [whatsappNumber, setWhatsappNumber] = useState('2349070392028');
+  const [notifyEnabled, setNotifyEnabled] = useState(true);
+  const [staleAlertDays, setStaleAlertDays] = useState(3);
 
   // Testimonial Form State
   const [testimonialModal, setTestimonialModal] = useState<{
@@ -315,16 +188,9 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
     story: '',
     yearsExperience: 6,
     appsBuilt: 24,
-    skills: [],
-    heroImage: '',
-    heroImageUrl: ''
+    skills: []
   });
   const [skillsInput, setSkillsInput] = useState('');
-
-  // Email Notification settings
-  const [notifyEmail, setNotifyEmail] = useState('');
-  const [notifyEnabled, setNotifyEnabled] = useState(true);
-  const [staleAlertDays, setStaleAlertDays] = useState(3);
 
   // Fetch full data when unlocked
   const fetchProducerData = async () => {
@@ -337,8 +203,25 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
       const pricingSnap = await getDocs(collection(db, 'pricing_tiers'));
       const myAppsSnap = await getDocs(collection(db, 'my_apps'));
       const requestsSnap = await getDocs(query(collection(db, 'requests'), orderBy('createdAt', 'desc')));
+      const bookingsSnap = await getDocs(query(collection(db, 'call_bookings'), orderBy('createdAt', 'desc'))).catch(() => null);
       const feedbackSnap = await getDocs(query(collection(db, 'feedback'), orderBy('createdAt', 'desc')));
       const settingsDoc = await getDoc(doc(db, 'settings', 'email'));
+      
+      // Fetch Intake Questions from Firestore
+      const questionsSnap = await getDocs(collection(db, 'intake_questions'));
+      let questionsList: IntakeQuestion[] = questionsSnap.docs.map(d => ({ id: d.id, ...d.data() } as IntakeQuestion));
+
+      // Seed default intake questions if none exist
+      if (questionsList.length === 0) {
+        for (const q of defaultIntakeQuestions) {
+          try {
+            await setDoc(doc(db, 'intake_questions', q.id), q);
+          } catch (_) {}
+        }
+        questionsList = [...defaultIntakeQuestions];
+      }
+
+      questionsList.sort((a, b) => (a.order || 0) - (b.order || 0));
 
       const data: FullProducerData = {
         about: aboutDoc.exists() ? aboutDoc.data() as any : null,
@@ -348,8 +231,12 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
         pricingTiers: pricingSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[],
         myApps: myAppsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[],
         requests: requestsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[],
+        bookings: bookingsSnap && !bookingsSnap.empty
+          ? (bookingsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[])
+          : [],
         privateFeedback: feedbackSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[],
-        emailSettings: settingsDoc.exists() ? settingsDoc.data() as any : { notifyEmail: '', enabled: true, logs: [] }
+        intakeQuestions: questionsList,
+        emailSettings: settingsDoc.exists() ? settingsDoc.data() as any : { notifyEmail: '', businessEmail: 'yourbusiness@email.com', enabled: true, logs: [] }
       };
 
       setProducerData(data);
@@ -359,14 +246,34 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
       }
       if (data.emailSettings) {
         setNotifyEmail(data.emailSettings.notifyEmail || 'deemakers01@gmail.com');
+        setBusinessEmail(data.emailSettings.businessEmail || 'yourbusiness@email.com');
+        if (data.emailSettings.whatsappNumber) {
+          setWhatsappNumber(data.emailSettings.whatsappNumber);
+        }
         setNotifyEnabled(data.emailSettings.enabled ?? true);
         if (data.emailSettings.staleAlertDays) {
           setStaleAlertDays(data.emailSettings.staleAlertDays);
         }
       }
+
+      // Fetch siteData/main for heroVideoUrl and whatsappNumber
+      try {
+        const siteDoc = await getDoc(doc(db, 'siteData', 'main'));
+        if (siteDoc.exists()) {
+          const sData = siteDoc.data();
+          if (sData.heroVideoUrl !== undefined) {
+            setHeroVideoUrl(sData.heroVideoUrl || '');
+            setManualHeroVideoUrl(sData.heroVideoUrl || '');
+          }
+          if (sData.whatsappNumber) {
+            setWhatsappNumber(sData.whatsappNumber);
+          }
+        }
+      } catch (siteErr) {
+        console.warn('Could not read siteData/main in Producer Portal:', siteErr);
+      }
     } catch (err) {
       console.error('Error fetching producer data from Firestore:', err);
-      // Fallback to API if Firestore fails (permissions, etc)
       try {
         const res = await fetch('/api/producer/full-data');
         if (res.ok) {
@@ -503,6 +410,209 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
     }
   };
 
+  // 1b. Update Call Booking Status
+  const handleBookingStatusChange = async (bookingId: string, newStatus: BookingStatus) => {
+    try {
+      // 1. Try Firestore direct update
+      try {
+        await updateDoc(doc(db, 'call_bookings', bookingId), { status: newStatus });
+      } catch (fsErr) {
+        console.warn('Firestore direct booking status update skipped:', fsErr);
+      }
+
+      // 2. Call server endpoint
+      await fetch(`/api/producer/bookings/${bookingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      // 3. Update local state
+      if (producerData && producerData.bookings) {
+        setProducerData({
+          ...producerData,
+          bookings: producerData.bookings.map(b => b.id === bookingId ? { ...b, status: newStatus } : b)
+        });
+      }
+
+      fetchProducerData();
+      triggerSavedNotification();
+    } catch (err) {
+      console.error('Failed to update booking status:', err);
+    }
+  };
+
+  // Delete Call Booking
+  const handleDeleteBooking = async (bookingId: string) => {
+    if (!window.confirm('Are you sure you want to delete this call booking?')) return;
+    try {
+      // 1. Try Firestore direct delete
+      try {
+        await deleteDoc(doc(db, 'call_bookings', bookingId));
+      } catch (fsErr) {
+        console.warn('Firestore direct booking delete skipped:', fsErr);
+      }
+
+      // 2. Call server endpoint
+      await fetch(`/api/producer/bookings/${bookingId}`, {
+        method: 'DELETE'
+      });
+
+      // 3. Update local state
+      if (producerData && producerData.bookings) {
+        setProducerData({
+          ...producerData,
+          bookings: producerData.bookings.filter(b => b.id !== bookingId)
+        });
+      }
+
+      fetchProducerData();
+      triggerSavedNotification();
+    } catch (err) {
+      console.error('Failed to delete booking:', err);
+    }
+  };
+
+
+  // BUILD CLAUDE BRIEF & EXPORT
+  const buildClaudeBrief = (request: ProjectRequest, pricingTiers: PricingTier[] = []): string => {
+    const matchingTier = pricingTiers.find(t => t.name === request.selectedPackage);
+    const tierPrice = matchingTier ? matchingTier.price : 'Custom';
+    const category = request.projectType || 'app';
+
+    const lines: string[] = [];
+
+    lines.push(`You are a senior full-stack developer. Below is a complete client brief. Read it carefully, ask me any clarifying questions you still need, propose a short build plan (tech stack, pages/screens, data model), then start building step by step.\n`);
+
+    lines.push(`# Client`);
+    lines.push(`Name: ${request.name}`);
+    lines.push(`Email: ${request.email}`);
+    lines.push(`Phone: ${request.phone || 'N/A'}`);
+    lines.push(`Preferred contact method: ${request.preferredContact}\n`);
+
+    lines.push(`# Package chosen`);
+    lines.push(`Category: ${category === 'website' ? 'Website' : 'App'}`);
+    lines.push(`Tier: ${request.selectedPackage || 'Custom Build'}`);
+    lines.push(`Price: ${tierPrice}\n`);
+
+    const qAns = request.questionnaireAnswers || [];
+    if (qAns.length > 0) {
+      const grouped = qAns.reduce((acc, item) => {
+        if (!acc[item.section]) acc[item.section] = [];
+        acc[item.section].push(item);
+        return acc;
+      }, {} as Record<string, QuestionnaireAnswer[]>);
+
+      Object.keys(grouped).forEach((sec) => {
+        const validItems = grouped[sec].filter(q => {
+          const val = Array.isArray(q.answer) ? q.answer.join(', ') : q.answer;
+          return val && val !== 'Not specified' && String(val).trim() !== '';
+        });
+
+        if (validItems.length > 0) {
+          lines.push(`# ${sec}`);
+          validItems.forEach((q) => {
+            const valStr = Array.isArray(q.answer) ? q.answer.join(', ') : q.answer;
+            lines.push(`### ${q.label}`);
+            lines.push(`${valStr}\n`);
+          });
+        }
+      });
+    } else if (request.appDescription) {
+      lines.push(`# Project scope`);
+      lines.push(`### What problem is your app/website solving?`);
+      lines.push(`${request.appDescription}\n`);
+    }
+
+    lines.push(`# Notes`);
+    lines.push(`${request.notes || 'None'}`);
+
+    return lines.join('\n');
+  };
+
+  const handleSendToClaude = (request: ProjectRequest) => {
+    const briefText = buildClaudeBrief(request, producerData?.pricingTiers || []);
+    navigator.clipboard.writeText(briefText);
+    setClaudeToast('Brief copied. Paste it into Claude.');
+    setTimeout(() => setClaudeToast(null), 3000);
+  };
+
+  const handleDownloadBrief = (request: ProjectRequest) => {
+    const briefText = buildClaudeBrief(request, producerData?.pricingTiers || []);
+    const blob = new Blob([briefText], { type: 'text/markdown;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const cleanName = (request.appName || 'project').replace(/[^a-zA-Z0-9_-]/g, '_');
+    link.setAttribute('download', `project_brief_${cleanName}.md`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // INTAKE QUESTIONS CRUD
+  const handleSaveQuestion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!questionModal.item) return;
+
+    const q = questionModal.item;
+    const qId = q.id || `q-${Date.now()}`;
+    const payload: IntakeQuestion = {
+      id: qId,
+      label: q.label || 'Untitled Question',
+      section: q.section || 'Project scope',
+      type: q.type || 'long_text',
+      options: q.options || [],
+      required: q.required ?? false,
+      appliesTo: q.appliesTo || 'both',
+      note: q.note || '',
+      order: q.order || 1
+    };
+
+    try {
+      await setDoc(doc(db, 'intake_questions', qId), payload);
+      setQuestionModal({ isOpen: false, item: null });
+      fetchProducerData();
+      triggerSavedNotification();
+    } catch (err) {
+      console.error('Error saving intake question:', err);
+    }
+  };
+
+  const handleDeleteQuestion = async (questionId: string) => {
+    if (!window.confirm('Are you sure you want to delete this intake question?')) return;
+    try {
+      await deleteDoc(doc(db, 'intake_questions', questionId));
+      fetchProducerData();
+      triggerSavedNotification();
+    } catch (err) {
+      console.error('Error deleting intake question:', err);
+    }
+  };
+
+  const handleMoveQuestion = async (questionId: string, direction: 'up' | 'down') => {
+    const questions = [...(producerData?.intakeQuestions || [])];
+    const idx = questions.findIndex(q => q.id === questionId);
+    if (idx === -1) return;
+
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= questions.length) return;
+
+    // Swap order
+    const temp = questions[idx].order;
+    questions[idx].order = questions[targetIdx].order;
+    questions[targetIdx].order = temp;
+
+    try {
+      await setDoc(doc(db, 'intake_questions', questions[idx].id), questions[idx]);
+      await setDoc(doc(db, 'intake_questions', questions[targetIdx].id), questions[targetIdx]);
+      fetchProducerData();
+      triggerSavedNotification();
+    } catch (err) {
+      console.error('Error reordering questions:', err);
+    }
+  };
+
   // 2. Portfolio Save / Delete
   const handleSavePortfolio = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -567,7 +677,102 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
     }
   };
 
-  // 4. Testimonials Save / Delete
+  // Hero Background Video Handlers
+  const handleHeroVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setHeroVideoUploadError(null);
+
+    // Validation: max 30MB
+    const MAX_SIZE_MB = 30;
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      setHeroVideoUploadError(`Video file is too large (${(file.size / (1024 * 1024)).toFixed(1)}MB). Maximum allowed size is ${MAX_SIZE_MB}MB.`);
+      return;
+    }
+
+    if (!file.type.startsWith('video/')) {
+      setHeroVideoUploadError('Please select a valid video file (MP4, WebM, QuickTime).');
+      return;
+    }
+
+    setIsUploadingHeroVideo(true);
+    try {
+      const result = await uploadToCloudinaryDirect(file, 'video');
+      setHeroVideoUrl(result.url);
+      setManualHeroVideoUrl(result.url);
+
+      // Persist in siteData/main
+      await setDoc(doc(db, 'siteData', 'main'), {
+        heroVideoUrl: result.url,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      // Mirror to about/main
+      await setDoc(doc(db, 'about', 'main'), {
+        heroVideoUrl: result.url,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      triggerSavedNotification();
+    } catch (err: any) {
+      console.error('Hero video upload failed:', err);
+      setHeroVideoUploadError(err.message || 'Failed to upload video to Cloudinary.');
+    } finally {
+      setIsUploadingHeroVideo(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleSaveManualHeroVideo = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    try {
+      const trimmed = manualHeroVideoUrl.trim();
+      setHeroVideoUrl(trimmed);
+      setHeroVideoUploadError(null);
+
+      await setDoc(doc(db, 'siteData', 'main'), {
+        heroVideoUrl: trimmed,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      await setDoc(doc(db, 'about', 'main'), {
+        heroVideoUrl: trimmed,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      triggerSavedNotification();
+    } catch (err) {
+      console.error('Error saving hero video URL:', err);
+      setHeroVideoUploadError('Failed to save hero video URL.');
+    }
+  };
+
+  const handleRemoveHeroVideo = async () => {
+    if (!window.confirm('Remove hero background video and revert to the handshake photo?')) return;
+    try {
+      setHeroVideoUrl('');
+      setManualHeroVideoUrl('');
+      setHeroVideoUploadError(null);
+
+      await setDoc(doc(db, 'siteData', 'main'), {
+        heroVideoUrl: '',
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      await setDoc(doc(db, 'about', 'main'), {
+        heroVideoUrl: '',
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      triggerSavedNotification();
+    } catch (err) {
+      console.error('Error removing hero video:', err);
+      setHeroVideoUploadError('Failed to remove video.');
+    }
+  };
+
+  // Testimonials Save / Delete
   const handleSaveTestimonial = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!testimonialModal.item) return;
@@ -598,7 +803,7 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
     }
   };
 
-  // 5. FAQ Save / Delete
+  // FAQ Save / Delete
   const handleSaveFAQ = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!faqModal.item) return;
@@ -629,7 +834,7 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
     }
   };
 
-  // 12. Save / Delete My Apps
+  // Save / Delete My Apps
   const handleSaveMyApp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!myAppModal.item) return;
@@ -666,7 +871,7 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
     }
   };
 
-  // 13. Save / Delete Pricing Tiers
+  // Save / Delete Pricing Tiers
   const handleSavePricing = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pricingModal.item) return;
@@ -696,12 +901,22 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
     }
   };
 
-  // 6. Save Email Settings
+  // Save Email Settings & Business Email & WhatsApp
   const handleSaveEmailSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const cleanPhone = whatsappNumber.replace(/\D/g, '') || '2349070392028';
+
+      // Save in siteData/main for customer intake confirmation
+      await setDoc(doc(db, 'siteData', 'main'), {
+        whatsappNumber: cleanPhone,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
       await setDoc(doc(db, 'settings', 'email'), {
         notifyEmail,
+        businessEmail,
+        whatsappNumber: cleanPhone,
         enabled: notifyEnabled,
         staleAlertDays,
         updatedAt: serverTimestamp()
@@ -780,9 +995,26 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
     return matchesSearch && matchesStatus;
   });
 
+  // Filter call bookings
+  const bookings = producerData?.bookings || [];
+  const newBookingsCount = bookings.filter((b) => b.status === 'New').length;
+  const filteredBookings = bookings.filter((b) => {
+    const term = bookingSearch.toLowerCase();
+    const matchesSearch =
+      (b.name || '').toLowerCase().includes(term) ||
+      (b.email || '').toLowerCase().includes(term) ||
+      (b.phone || '').toLowerCase().includes(term) ||
+      (b.topic || '').toLowerCase().includes(term);
+    const matchesStatus = bookingStatusFilter === 'All' || b.status === bookingStatusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const showBusinessEmailWarning = !businessEmail || businessEmail === 'yourbusiness@email.com';
+
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl w-full max-w-[95vw] max-h-[94vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto relative">
+        
         {/* Saved Confirmation Toast Banner */}
         {savedToast && (
           <div className="absolute top-3 right-16 z-50 bg-emerald-500 text-white font-bold text-xs px-3.5 py-1.5 rounded-full shadow-lg flex items-center space-x-1.5 animate-in fade-in slide-in-from-top-2 duration-200 border border-emerald-400">
@@ -816,14 +1048,31 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
           </div>
         </div>
 
+        {/* Business Email Warning Banner */}
+        {showBusinessEmailWarning && (
+          <div className="bg-amber-500 text-slate-950 px-6 py-2 text-xs font-black flex items-center justify-between shrink-0">
+            <div className="flex items-center space-x-2">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-slate-950" />
+              <span>Set your business email so customers can email you via Fast Review.</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTab('email')}
+              className="underline uppercase tracking-wider text-[11px] font-black hover:text-white cursor-pointer ml-2"
+            >
+              Configure Now →
+            </button>
+          </div>
+        )}
+
         {/* Portal Navigation Tabs */}
-        <div className="bg-slate-100 border-b border-slate-200 px-6 flex space-x-1 sm:space-x-4 overflow-x-auto flex-shrink-0 text-sm font-medium text-slate-600">
+        <div className="bg-slate-950 border-b border-white/10 px-4 sm:px-6 flex space-x-1.5 sm:space-x-2 overflow-x-auto flex-shrink-0 text-xs font-bold text-slate-400">
           <button
             onClick={() => setActiveTab('requests')}
-            className={`py-3 px-3 border-b-2 font-semibold flex items-center space-x-2 whitespace-nowrap cursor-pointer ${
+            className={`py-3 px-3.5 rounded-t-xl font-black uppercase tracking-wider flex items-center space-x-2 whitespace-nowrap cursor-pointer transition-all ${
               activeTab === 'requests'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent hover:text-slate-900'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg border-t-2 border-cyan-400'
+                : 'hover:text-white hover:bg-white/5'
             }`}
           >
             <FileText className="w-4 h-4" />
@@ -831,11 +1080,44 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
           </button>
 
           <button
+            onClick={() => setActiveTab('bookings')}
+            className={`py-3 px-3.5 rounded-t-xl font-black uppercase tracking-wider flex items-center space-x-2 whitespace-nowrap cursor-pointer transition-all ${
+              activeTab === 'bookings'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg border-t-2 border-cyan-400'
+                : 'hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <PhoneCall className="w-4 h-4" />
+            <span>Call Bookings</span>
+            {newBookingsCount > 0 ? (
+              <span className="ml-1.5 px-2 py-0.5 text-[10px] font-black rounded-full bg-cyan-400 text-slate-950">
+                {newBookingsCount}
+              </span>
+            ) : (
+              <span className="text-[11px] text-slate-400 font-normal">
+                ({bookings.length})
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('questions')}
+            className={`py-3 px-3.5 rounded-t-xl font-black uppercase tracking-wider flex items-center space-x-2 whitespace-nowrap cursor-pointer transition-all ${
+              activeTab === 'questions'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg border-t-2 border-cyan-400'
+                : 'hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <ListOrdered className="w-4 h-4" />
+            <span>Intake Questions ({producerData?.intakeQuestions?.length || 0})</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('portfolio')}
-            className={`py-3 px-3 border-b-2 font-semibold flex items-center space-x-2 whitespace-nowrap cursor-pointer ${
+            className={`py-3 px-3.5 rounded-t-xl font-black uppercase tracking-wider flex items-center space-x-2 whitespace-nowrap cursor-pointer transition-all ${
               activeTab === 'portfolio'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent hover:text-slate-900'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg border-t-2 border-cyan-400'
+                : 'hover:text-white hover:bg-white/5'
             }`}
           >
             <Briefcase className="w-4 h-4" />
@@ -844,10 +1126,10 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
 
           <button
             onClick={() => setActiveTab('my-apps')}
-            className={`py-3 px-3 border-b-2 font-semibold flex items-center space-x-2 whitespace-nowrap cursor-pointer ${
+            className={`py-3 px-3.5 rounded-t-xl font-black uppercase tracking-wider flex items-center space-x-2 whitespace-nowrap cursor-pointer transition-all ${
               activeTab === 'my-apps'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent hover:text-slate-900'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg border-t-2 border-cyan-400'
+                : 'hover:text-white hover:bg-white/5'
             }`}
           >
             <Smartphone className="w-4 h-4" />
@@ -856,10 +1138,10 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
 
           <button
             onClick={() => setActiveTab('pricing')}
-            className={`py-3 px-3 border-b-2 font-semibold flex items-center space-x-2 whitespace-nowrap cursor-pointer ${
+            className={`py-3 px-3.5 rounded-t-xl font-black uppercase tracking-wider flex items-center space-x-2 whitespace-nowrap cursor-pointer transition-all ${
               activeTab === 'pricing'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent hover:text-slate-900'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg border-t-2 border-cyan-400'
+                : 'hover:text-white hover:bg-white/5'
             }`}
           >
             <Package className="w-4 h-4" />
@@ -868,10 +1150,10 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
 
           <button
             onClick={() => setActiveTab('about')}
-            className={`py-3 px-3 border-b-2 font-semibold flex items-center space-x-2 whitespace-nowrap cursor-pointer ${
+            className={`py-3 px-3.5 rounded-t-xl font-black uppercase tracking-wider flex items-center space-x-2 whitespace-nowrap cursor-pointer transition-all ${
               activeTab === 'about'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent hover:text-slate-900'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg border-t-2 border-cyan-400'
+                : 'hover:text-white hover:bg-white/5'
             }`}
           >
             <Edit2 className="w-4 h-4" />
@@ -880,10 +1162,10 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
 
           <button
             onClick={() => setActiveTab('testimonials')}
-            className={`py-3 px-3 border-b-2 font-semibold flex items-center space-x-2 whitespace-nowrap cursor-pointer ${
+            className={`py-3 px-3.5 rounded-t-xl font-black uppercase tracking-wider flex items-center space-x-2 whitespace-nowrap cursor-pointer transition-all ${
               activeTab === 'testimonials'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent hover:text-slate-900'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg border-t-2 border-cyan-400'
+                : 'hover:text-white hover:bg-white/5'
             }`}
           >
             <MessageSquare className="w-4 h-4" />
@@ -892,10 +1174,10 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
 
           <button
             onClick={() => setActiveTab('faqs')}
-            className={`py-3 px-3 border-b-2 font-semibold flex items-center space-x-2 whitespace-nowrap cursor-pointer ${
+            className={`py-3 px-3.5 rounded-t-xl font-black uppercase tracking-wider flex items-center space-x-2 whitespace-nowrap cursor-pointer transition-all ${
               activeTab === 'faqs'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent hover:text-slate-900'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg border-t-2 border-cyan-400'
+                : 'hover:text-white hover:bg-white/5'
             }`}
           >
             <HelpCircle className="w-4 h-4" />
@@ -923,7 +1205,7 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
             }`}
           >
             <Bell className="w-4 h-4" />
-            <span>Notifications</span>
+            <span>Notifications & Email</span>
           </button>
         </div>
 
@@ -1105,7 +1387,7 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
                               </div>
 
                               <div className="mt-2 text-xs font-semibold text-blue-700 bg-blue-50/80 px-2 py-0.5 rounded w-fit border border-blue-100">
-                                Tier: {reqItem.selectedPackage || 'Custom Build'}
+                                Tier: {reqItem.selectedPackage || 'Custom Build'} ({reqItem.projectType === 'website' ? 'Website' : 'Mobile App'})
                               </div>
 
                               <p className="text-xs text-slate-500 line-clamp-2 mt-2">
@@ -1137,11 +1419,61 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
 
                               <button
                                 onClick={() => handleDeleteRequest(selectedRequest.id)}
-                                className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                                className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
                                 title="Delete request"
                               >
                                 <Trash2 className="w-4.5 h-4.5" />
                               </button>
+                            </div>
+
+                            {/* PART 3: PRODUCER PORTAL SEND TO CLAUDE SECTION */}
+                            <div className="p-4 bg-gradient-to-r from-purple-900 to-indigo-900 text-white rounded-xl space-y-3 shadow-md">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <Sparkles className="w-4 h-4 text-purple-300" />
+                                  <span className="text-xs font-bold text-purple-200 uppercase tracking-wider">AI Developer Handoff</span>
+                                </div>
+                                {claudeToast && (
+                                  <span className="text-[11px] font-bold text-emerald-300 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/50">
+                                    {claudeToast}
+                                  </span>
+                                )}
+                              </div>
+
+                              <p className="text-xs text-slate-200 leading-snug">
+                                Copy formatted brief to clipboard for Claude or download as markdown file.
+                              </p>
+
+                              <div className="flex flex-wrap items-center gap-2 pt-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handleSendToClaude(selectedRequest)}
+                                  className="px-3.5 py-2 bg-purple-500 hover:bg-purple-600 text-white font-bold text-xs rounded-lg transition-colors flex items-center space-x-1.5 shadow-sm cursor-pointer"
+                                >
+                                  <Copy className="w-3.5 h-3.5" />
+                                  <span>Send to Claude</span>
+                                </button>
+
+                                <a
+                                  href="https://claude.ai/new"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-lg transition-colors flex items-center space-x-1.5 border border-white/20 cursor-pointer"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5 text-purple-300" />
+                                  <span>Open Claude</span>
+                                </a>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleDownloadBrief(selectedRequest)}
+                                  className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-lg transition-colors flex items-center space-x-1 border border-slate-700 cursor-pointer"
+                                  title="Download brief as .md file"
+                                >
+                                  <Download className="w-3.5 h-3.5" />
+                                  <span>.md</span>
+                                </button>
+                              </div>
                             </div>
 
                             {/* Status Pipeline Buttons */}
@@ -1196,7 +1528,7 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
                               </div>
                               <div>
                                 <span className="text-xs text-slate-400 block">Package Tier Selected:</span>
-                                <span className="font-bold text-blue-700">{selectedRequest.selectedPackage || 'Custom Build'}</span>
+                                <span className="font-bold text-blue-700">{selectedRequest.selectedPackage || 'Custom Build'} ({selectedRequest.projectType === 'website' ? 'Website' : 'Mobile App'})</span>
                               </div>
                               <div>
                                 <span className="text-xs text-slate-400 block">Source / Channel:</span>
@@ -1236,10 +1568,31 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
                               </div>
                             </div>
 
+                            {/* Full Questionnaire Responses */}
+                            {selectedRequest.questionnaireAnswers && selectedRequest.questionnaireAnswers.length > 0 && (
+                              <div className="space-y-3">
+                                <span className="text-xs font-bold uppercase text-slate-400 block">
+                                  Detailed Questionnaire Answers
+                                </span>
+                                <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs">
+                                  {selectedRequest.questionnaireAnswers.map((q, idx) => {
+                                    const valStr = Array.isArray(q.answer) ? q.answer.join(', ') : q.answer;
+                                    if (!valStr || valStr === 'Not specified') return null;
+                                    return (
+                                      <div key={idx} className="border-b border-slate-200/60 pb-2 last:border-0 last:pb-0">
+                                        <span className="font-bold text-slate-800 block text-[11px] uppercase tracking-wider text-blue-800">{q.section} → {q.label}</span>
+                                        <span className="text-slate-700 whitespace-pre-line mt-0.5 block">{valStr}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
                             {/* App Description */}
                             <div>
                               <span className="text-xs font-bold uppercase text-slate-400 block mb-1">
-                                App Description
+                                App Description / Problem Summary
                               </span>
                               <p className="text-sm text-slate-700 leading-relaxed bg-slate-50/60 p-3.5 rounded-xl border border-slate-100 whitespace-pre-line">
                                 {selectedRequest.appDescription}
@@ -1270,7 +1623,7 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
                               />
                               <button
                                 onClick={() => handleSaveRequestNotes(selectedRequest.id)}
-                                className="mt-2 text-xs font-semibold text-blue-600 hover:underline flex items-center"
+                                className="mt-2 text-xs font-semibold text-blue-600 hover:underline flex items-center cursor-pointer"
                               >
                                 <Save className="w-3.5 h-3.5 mr-1" />
                                 Save Notes
@@ -1288,7 +1641,326 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
                 </div>
               )}
 
-              {/* TAB 2: PORTFOLIO MANAGER */}
+              {/* TAB: CALL BOOKINGS */}
+              {activeTab === 'bookings' && (
+                <div className="space-y-6">
+                  {/* Stats Overview */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                      <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Bookings</div>
+                      <div className="text-2xl font-black text-slate-900 mt-1">{bookings.length}</div>
+                    </div>
+
+                    <div className="p-3.5 bg-white rounded-xl border border-blue-200 bg-blue-50/40 shadow-2xs">
+                      <div className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">New Requests</div>
+                      <div className="text-2xl font-black text-blue-700 mt-1">
+                        {bookings.filter(b => b.status === 'New').length}
+                      </div>
+                    </div>
+
+                    <div className="p-3.5 bg-white rounded-xl border border-amber-200 bg-amber-50/30 shadow-2xs">
+                      <div className="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Confirmed Calls</div>
+                      <div className="text-2xl font-black text-amber-700 mt-1">
+                        {bookings.filter(b => b.status === 'Confirmed').length}
+                      </div>
+                    </div>
+
+                    <div className="p-3.5 bg-white rounded-xl border border-emerald-200 bg-emerald-50/30 shadow-2xs">
+                      <div className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Completed / Done</div>
+                      <div className="text-2xl font-black text-emerald-700 mt-1">
+                        {bookings.filter(b => b.status === 'Done').length}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Filter & Search Controls */}
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
+                    <div className="relative w-full sm:w-80">
+                      <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+                      <input
+                        type="text"
+                        value={bookingSearch}
+                        onChange={(e) => setBookingSearch(e.target.value)}
+                        placeholder="Search by client, email, topic, or phone..."
+                        className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+                      />
+                    </div>
+
+                    <div className="flex items-center space-x-2 w-full sm:w-auto">
+                      <Filter className="w-4 h-4 text-slate-400" />
+                      <span className="text-xs font-semibold text-slate-600">Status:</span>
+                      <select
+                        value={bookingStatusFilter}
+                        onChange={(e) => setBookingStatusFilter(e.target.value)}
+                        className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:outline-none"
+                      >
+                        <option value="All">All Bookings</option>
+                        <option value="New">New</option>
+                        <option value="Confirmed">Confirmed</option>
+                        <option value="Done">Done</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Bookings List Cards */}
+                  {filteredBookings.length === 0 ? (
+                    <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+                      <PhoneCall className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                      <h4 className="text-base font-bold text-slate-800">No Call Bookings Found</h4>
+                      <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                        {bookingSearch || bookingStatusFilter !== 'All'
+                          ? 'No call bookings match your current search or filter criteria.'
+                          : 'When visitors schedule a 15-minute intro call, their bookings will appear here.'}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4">
+                      {filteredBookings.map((b) => {
+                        const rawPhone = b.phone ? b.phone.replace(/\D/g, '') : '';
+                        const formattedPhone = rawPhone.startsWith('0') && rawPhone.length === 11 
+                          ? '234' + rawPhone.slice(1) 
+                          : rawPhone;
+
+                        const waReplyText = encodeURIComponent(`Hi ${b.name}, this is Dee-Maker. Your intro call on ${b.date} at ${b.time} is confirmed.`);
+                        const emailSubject = encodeURIComponent(`Intro Call Confirmation — Dee-Maker Studio`);
+                        const emailBody = encodeURIComponent(`Hi ${b.name},\n\nThis is Dee-Maker. Your intro call on ${b.date} at ${b.time} is confirmed.\n\nLooking forward to speaking with you!\n\nBest regards,\nDee-Maker Engineering`);
+
+                        return (
+                          <div 
+                            key={b.id} 
+                            className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs transition-shadow hover:shadow-md space-y-4"
+                          >
+                            {/* Card Top: Client Name, Status Selector, Created Time */}
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center font-black text-sm shrink-0">
+                                  {b.name ? b.name.charAt(0).toUpperCase() : 'C'}
+                                </div>
+                                <div>
+                                  <h4 className="text-base font-black text-slate-900 leading-tight">{b.name}</h4>
+                                  <div className="flex items-center space-x-2 text-xs text-slate-500 mt-0.5">
+                                    <Clock className="w-3 h-3 text-slate-400" />
+                                    <span>Requested: {new Date(b.createdAt).toLocaleString()}</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Status Selector */}
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Status:</span>
+                                <select
+                                  value={b.status}
+                                  onChange={(e) => handleBookingStatusChange(b.id, e.target.value as BookingStatus)}
+                                  className={`text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-xl border cursor-pointer focus:outline-none transition-colors ${
+                                    b.status === 'New'
+                                      ? 'bg-blue-50 text-blue-700 border-blue-300'
+                                      : b.status === 'Confirmed'
+                                      ? 'bg-amber-50 text-amber-800 border-amber-300'
+                                      : 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                  }`}
+                                >
+                                  <option value="New">New</option>
+                                  <option value="Confirmed">Confirmed</option>
+                                  <option value="Done">Done</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            {/* Details Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                              <div>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Reserved Date & Time</span>
+                                <div className="font-extrabold text-blue-700 text-sm">
+                                  {b.date} at {b.time}
+                                </div>
+                                <span className="text-[10px] text-slate-400 font-medium">West Africa Time (WAT)</span>
+                              </div>
+
+                              <div>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Client Email</span>
+                                <a href={`mailto:${b.email}`} className="font-semibold text-slate-800 hover:text-blue-600 transition-colors break-all">
+                                  {b.email}
+                                </a>
+                              </div>
+
+                              <div>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Phone / WhatsApp</span>
+                                {b.phone ? (
+                                  <span className="font-semibold text-slate-800">{b.phone}</span>
+                                ) : (
+                                  <span className="text-slate-400 italic">Not provided</span>
+                                )}
+                              </div>
+
+                              <div>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Discussion Topic</span>
+                                <span className="font-medium text-slate-700 line-clamp-2">{b.topic || 'App Architecture Overview'}</span>
+                              </div>
+                            </div>
+
+                            {/* Action Buttons — ALWAYS VISIBLE (not hover-only, friendly on phone) */}
+                            <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                              {/* Reply on WhatsApp Button (only if phone exists) */}
+                              {b.phone && formattedPhone ? (
+                                <a
+                                  href={`https://wa.me/${formattedPhone}?text=${waReplyText}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-xs cursor-pointer"
+                                >
+                                  <MessageSquare className="w-3.5 h-3.5 mr-1.5" />
+                                  <span>Reply on WhatsApp</span>
+                                </a>
+                              ) : null}
+
+                              {/* Reply by Email Button */}
+                              <a
+                                href={`mailto:${b.email}?subject=${emailSubject}&body=${emailBody}`}
+                                className="inline-flex items-center px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-xs cursor-pointer"
+                              >
+                                <Mail className="w-3.5 h-3.5 mr-1.5" />
+                                <span>Reply by Email</span>
+                              </a>
+
+                              {/* Delete Button */}
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteBooking(b.id)}
+                                className="inline-flex items-center px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer ml-auto"
+                                title="Delete this booking"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 mr-1" />
+                                <span>Delete</span>
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* TAB 2: INTAKE QUESTIONS MANAGER */}
+              {activeTab === 'questions' && (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900">Manage Intake Questions</h3>
+                      <p className="text-xs text-slate-500">Add, edit, reorder, or delete questions shown in the customer intake form.</p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setQuestionModal({
+                        isOpen: true,
+                        item: {
+                          label: '',
+                          section: 'Project scope',
+                          type: 'long_text',
+                          required: false,
+                          appliesTo: 'both',
+                          options: [],
+                          order: (producerData?.intakeQuestions?.length || 0) + 1
+                        }
+                      })}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl flex items-center space-x-1.5 cursor-pointer w-fit"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Add Question</span>
+                    </button>
+                  </div>
+
+                  <div className="space-y-6">
+                    {['Project scope', 'Technical and access', 'Business logic', 'Practical / contract'].map((sectionName) => {
+                      const sectionQs = (producerData?.intakeQuestions || []).filter(q => q.section === sectionName);
+                      if (sectionQs.length === 0) return null;
+
+                      return (
+                        <div key={sectionName} className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+                          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                            <h4 className="font-bold text-slate-900 text-sm">{sectionName}</h4>
+                            <span className="text-xs font-semibold text-slate-400">{sectionQs.length} questions</span>
+                          </div>
+
+                          <div className="space-y-2">
+                            {sectionQs.map((q, idx) => (
+                              <div key={q.id} className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div className="space-y-1">
+                                  <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                                    <span className="font-bold text-slate-900 text-xs">{q.label}</span>
+                                    {q.required && (
+                                      <span className="px-1.5 py-0.5 bg-red-100 text-red-700 text-[10px] font-extrabold rounded">
+                                        Required
+                                      </span>
+                                    )}
+                                    <span className="px-1.5 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-bold rounded capitalize">
+                                      {q.appliesTo === 'both' ? 'App & Website' : q.appliesTo}
+                                    </span>
+                                    <span className="px-1.5 py-0.5 bg-slate-200 text-slate-700 text-[10px] font-mono rounded">
+                                      {q.type}
+                                    </span>
+                                  </div>
+
+                                  {q.note && (
+                                    <p className="text-[11px] text-slate-500 italic">Note: {q.note}</p>
+                                  )}
+
+                                  {q.options && q.options.length > 0 && (
+                                    <p className="text-[11px] text-slate-600 font-mono">Options: {q.options.join(', ')}</p>
+                                  )}
+                                </div>
+
+                                {/* EDIT AND DELETE BUTTONS MUST BE ALWAYS VISIBLE */}
+                                <div className="flex items-center space-x-2 shrink-0 self-end sm:self-auto pt-2 sm:pt-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMoveQuestion(q.id, 'up')}
+                                    disabled={idx === 0}
+                                    className="p-1.5 text-slate-500 hover:text-slate-900 bg-white border border-slate-200 rounded-lg text-xs font-bold disabled:opacity-30 cursor-pointer"
+                                    title="Move Up"
+                                  >
+                                    ↑
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMoveQuestion(q.id, 'down')}
+                                    disabled={idx === sectionQs.length - 1}
+                                    className="p-1.5 text-slate-500 hover:text-slate-900 bg-white border border-slate-200 rounded-lg text-xs font-bold disabled:opacity-30 cursor-pointer"
+                                    title="Move Down"
+                                  >
+                                    ↓
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setQuestionModal({ isOpen: true, item: q })}
+                                    className="px-2.5 py-1.5 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-xs font-bold transition-colors flex items-center space-x-1 cursor-pointer"
+                                    title="Edit Question"
+                                  >
+                                    <Edit2 className="w-3.5 h-3.5" />
+                                    <span>Edit</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteQuestion(q.id)}
+                                    className="px-2.5 py-1.5 bg-rose-500 text-white hover:bg-rose-600 rounded-lg text-xs font-bold transition-colors flex items-center space-x-1 cursor-pointer"
+                                    title="Delete Question"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                    <span>Delete</span>
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: PORTFOLIO MANAGER */}
               {activeTab === 'portfolio' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
@@ -1303,10 +1975,9 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
                           item: { title: '', category: 'iOS & Android', description: '', imageUrl: '', videoUrl: '', techStack: [] },
                         })
                       }
-                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold text-xs rounded-xl hover:bg-blue-700 cursor-pointer"
+                      className="px-4 py-2 bg-blue-600 text-white font-semibold text-xs rounded-xl hover:bg-blue-700 cursor-pointer"
                     >
-                      <Plus className="w-4 h-4 mr-1.5" />
-                      Add Portfolio Item
+                      <Plus className="w-4 h-4 mr-1 inline" /> Add Project
                     </button>
                   </div>
 
@@ -1315,41 +1986,26 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
                       <div key={port.id} className="bg-white rounded-xl border border-slate-200 p-4 flex flex-col justify-between">
                         <div>
                           <div className="flex items-start justify-between">
-                            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                              {port.category}
-                            </span>
-                            <div className="flex items-center space-x-1">
+                            <div>
+                              <span className="text-[10px] font-bold uppercase text-blue-600">{port.category}</span>
+                              <h4 className="font-bold text-slate-900 text-base">{port.title}</h4>
+                            </div>
+                            <div className="flex space-x-1">
                               <button
-                                onClick={() =>
-                                  setPortfolioModal({
-                                    isOpen: true,
-                                    item: {
-                                      ...port,
-                                      techStack: (port.techStack || []).join(', ') as any,
-                                    },
-                                  })
-                                }
-                                className="p-1 text-slate-400 hover:text-blue-600"
+                                onClick={() => setPortfolioModal({ isOpen: true, item: port })}
+                                className="p-1 text-slate-400 hover:text-blue-600 cursor-pointer"
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleDeletePortfolio(port.id)}
-                                className="p-1 text-slate-400 hover:text-red-600"
+                                className="p-1 text-slate-400 hover:text-red-600 cursor-pointer"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
                           </div>
-                          <h4 className="font-bold text-slate-900 mt-2">{port.title}</h4>
-                          <p className="text-xs text-slate-600 line-clamp-2 mt-1">{port.description}</p>
-                        </div>
-
-                        <div className="mt-3 pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-1 text-xs text-slate-400">
-                          <span className="truncate max-w-[200px]">Tech: {(port.techStack || []).join(', ')}</span>
-                          <div className="flex items-center space-x-2">
-                            {port.videoUrl && <span className="text-blue-600 font-medium">Video Demo</span>}
-                          </div>
+                          <p className="text-xs text-slate-500 mt-2 line-clamp-2">{port.description}</p>
                         </div>
                       </div>
                     ))}
@@ -1357,57 +2013,43 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
                 </div>
               )}
 
-              {/* TAB: MY APPS MANAGER */}
+              {/* TAB 4: MY APPS */}
               {activeTab === 'my-apps' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-lg font-bold text-slate-900">Manage My Apps</h3>
-                      <p className="text-xs text-slate-500">Add proprietary apps for public download.</p>
+                      <h3 className="text-lg font-bold text-slate-900">Manage My Showcase Apps</h3>
+                      <p className="text-xs text-slate-500">Showcase app builds created directly by Dee-Maker.</p>
                     </div>
                     <button
                       onClick={() =>
                         setMyAppModal({
                           isOpen: true,
-                          item: { name: '', description: '', images: [], howItWasMade: '', updateNotes: '' },
+                          item: { name: '', description: '', howItWasMade: '', updateNotes: '', images: [], downloadUrl: '', fileName: '' },
                         })
                       }
-                      className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white font-semibold text-xs rounded-xl hover:bg-indigo-700 cursor-pointer"
+                      className="px-4 py-2 bg-indigo-600 text-white font-semibold text-xs rounded-xl hover:bg-indigo-700 cursor-pointer"
                     >
-                      <Plus className="w-4 h-4 mr-1.5" />
-                      Add Proprietary App
+                      <Plus className="w-4 h-4 mr-1 inline" /> Add App Showcase
                     </button>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {(producerData?.myApps || []).map((app) => (
-                      <div key={app.id} className="bg-white rounded-xl border border-slate-200 p-4 flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-start justify-between">
-                            <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
-                              Proprietary App
-                            </span>
-                            <div className="flex items-center space-x-1">
-                              <button
-                                onClick={() => setMyAppModal({ isOpen: true, item: app })}
-                                className="p-1 text-slate-400 hover:text-indigo-600"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteMyApp(app.id)}
-                                className="p-1 text-slate-400 hover:text-red-600"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
+                      <div key={app.id} className="bg-white rounded-xl border border-slate-200 p-4 space-y-2">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h4 className="font-bold text-slate-900 text-base">{app.name}</h4>
+                            <p className="text-xs text-slate-500 line-clamp-2">{app.description}</p>
                           </div>
-                          <h4 className="font-bold text-slate-900 mt-2">{app.name}</h4>
-                          <p className="text-xs text-slate-600 line-clamp-2 mt-1">{app.description}</p>
-                        </div>
-                        <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-1 text-xs text-slate-400">
-                           <span className="truncate">{app.images?.length || 0} Screenshots</span>
-                           {app.downloadUrl && <span className="text-emerald-600 font-medium">Build Uploaded</span>}
+                          <div className="flex space-x-1 shrink-0">
+                            <button onClick={() => setMyAppModal({ isOpen: true, item: app })} className="p-1 text-slate-400 hover:text-blue-600 cursor-pointer">
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => handleDeleteMyApp(app.id)} className="p-1 text-slate-400 hover:text-red-600 cursor-pointer">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -1415,204 +2057,260 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
                 </div>
               )}
 
-              {/* TAB: PRICING PACKAGES */}
+              {/* TAB 5: PRICING PACKAGES */}
               {activeTab === 'pricing' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-lg font-bold text-slate-900">Manage Pricing Tiers</h3>
-                      <p className="text-xs text-slate-500">Edit App and Website packages.</p>
+                      <h3 className="text-lg font-bold text-slate-900">Manage Pricing Tiers & Packages</h3>
+                      <p className="text-xs text-slate-500">Update packages for Mobile Apps and Web Platforms.</p>
                     </div>
                     <button
                       onClick={() =>
                         setPricingModal({
                           isOpen: true,
-                          item: { name: '', tagline: '', price: '', period: 'per project', features: [], turnaround: '', bestFor: '', category: 'app' },
+                          item: { name: '', category: 'app', price: '$1,500', tagline: '', turnaround: '2-3 weeks', bestFor: '', features: [] },
                         })
                       }
-                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold text-xs rounded-xl hover:bg-blue-700 cursor-pointer"
+                      className="px-4 py-2 bg-blue-600 text-white font-semibold text-xs rounded-xl hover:bg-blue-700 cursor-pointer"
                     >
-                      <Plus className="w-4 h-4 mr-1.5" />
-                      Add Tier
+                      <Plus className="w-4 h-4 mr-1 inline" /> Add Pricing Tier
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* App Packages */}
-                    <div className="md:col-span-2 lg:col-span-3">
-                      <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">App Development Packages</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {(producerData?.pricingTiers || []).filter(p => p.category === 'app').map((tier) => (
-                          <div key={tier.id} className="bg-white rounded-xl border border-slate-200 p-4 relative group">
-                            <div className="flex justify-between items-start mb-2">
-                              <h5 className="font-bold text-slate-900">{tier.name}</h5>
-                              <div className="flex space-x-1">
-                                <button onClick={() => setPricingModal({ isOpen: true, item: tier })} className="p-2 text-slate-400 hover:text-blue-600 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer" title="Edit Tier"><Edit2 size={16}/></button>
-                                <button onClick={() => handleDeletePricing(tier.id)} className="p-2 text-slate-400 hover:text-red-600 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer" title="Delete Tier"><Trash2 size={16}/></button>
-                              </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {(producerData?.pricingTiers || []).map((tier) => (
+                      <div key={tier.id} className="bg-white rounded-xl border border-slate-200 p-4 space-y-2 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <span className="text-[10px] font-extrabold uppercase text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                                {tier.category === 'website' ? 'Website' : 'App'}
+                              </span>
+                              <h4 className="font-bold text-slate-900 text-base mt-1">{tier.name}</h4>
                             </div>
-                            <p className="text-2xl font-black text-slate-900">{tier.price}</p>
-                            <p className="text-xs text-slate-500 mb-4">{tier.tagline}</p>
-                            <div className="space-y-1">
-                              {tier.features.slice(0, 3).map((f, i) => (
-                                <p key={i} className="text-[11px] text-slate-600 truncate">• {f}</p>
-                              ))}
+                            <div className="flex space-x-1 shrink-0">
+                              <button onClick={() => setPricingModal({ isOpen: true, item: tier })} className="p-1 text-slate-400 hover:text-blue-600 cursor-pointer">
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => handleDeletePricing(tier.id)} className="p-1 text-slate-400 hover:text-red-600 cursor-pointer">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                             </div>
                           </div>
-                        ))}
+                          <p className="text-lg font-black text-slate-900 mt-2">{tier.price}</p>
+                          <p className="text-xs text-slate-500 italic mt-1">{tier.tagline}</p>
+                        </div>
                       </div>
-                    </div>
-
-                    {/* Website Packages */}
-                    <div className="md:col-span-2 lg:col-span-3">
-                      <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Website Development Packages</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {(producerData?.pricingTiers || []).filter(p => p.category === 'website').map((tier) => (
-                          <div key={tier.id} className="bg-white rounded-xl border border-slate-200 p-4 relative group">
-                            <div className="flex justify-between items-start mb-2">
-                              <h5 className="font-bold text-slate-900">{tier.name}</h5>
-                              <div className="flex space-x-1">
-                                <button onClick={() => setPricingModal({ isOpen: true, item: tier })} className="p-2 text-slate-400 hover:text-blue-600 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer" title="Edit Tier"><Edit2 size={16}/></button>
-                                <button onClick={() => handleDeletePricing(tier.id)} className="p-2 text-slate-400 hover:text-red-600 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer" title="Delete Tier"><Trash2 size={16}/></button>
-                              </div>
-                            </div>
-                            <p className="text-2xl font-black text-slate-900">{tier.price}</p>
-                            <p className="text-xs text-slate-500 mb-4">{tier.tagline}</p>
-                            <div className="space-y-1">
-                              {tier.features.slice(0, 3).map((f, i) => (
-                                <p key={i} className="text-[11px] text-slate-600 truncate">• {f}</p>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
               )}
 
-              {/* TAB 3: ABOUT STORY */}
+              {/* TAB 6: ABOUT STORY & HERO MEDIA */}
               {activeTab === 'about' && (
-                <form onSubmit={handleSaveAbout} className="bg-white rounded-xl border border-slate-200 p-6 space-y-4 max-w-2xl">
-                  <h3 className="text-lg font-bold text-slate-900">Edit About Story & Bio</h3>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-slate-400 mb-2">
-                      Profile / Hero Image
-                    </label>
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                      <div className="w-24 h-24 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
-                        {aboutForm.heroImageUrl || aboutForm.heroImage ? (
-                          <img src={aboutForm.heroImageUrl || aboutForm.heroImage} alt="Hero" className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-slate-400 bg-linear-to-br from-blue-50 to-indigo-50">
-                            <ImageIcon className="w-8 h-8 opacity-40" />
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex-1 space-y-2">
-                        <div className="flex flex-wrap gap-2">
-                          <label className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 cursor-pointer transition-colors flex items-center">
-                            <Upload className="w-3.5 h-3.5 mr-2" />
-                            {isUploadingHeroImage ? 'Uploading...' : 'Upload New Photo'}
-                            <input type="file" accept="image/*" onChange={handleHeroImageUpload} className="hidden" disabled={isUploadingHeroImage} />
-                          </label>
-                          {(aboutForm.heroImageUrl || aboutForm.heroImage) && (
-                            <button 
-                              type="button" 
-                              onClick={() => setAboutForm({ ...aboutForm, heroImage: '', heroImageUrl: '' })}
-                              className="px-4 py-2 bg-white text-red-600 border border-red-100 rounded-xl text-xs font-bold hover:bg-red-50 transition-colors flex items-center"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 mr-2" />
-                              Remove
-                            </button>
-                          )}
+                <div className="space-y-6 max-w-2xl">
+                  {/* Hero Background Video Card */}
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <Video className="w-5 h-5 text-indigo-600" />
+                          <h3 className="text-lg font-bold text-slate-900">Hero Background Video</h3>
                         </div>
-                        <p className="text-[10px] text-slate-500">
-                          Recommended: Square or portrait aspect ratio. Max 30MB.
+                        <p className="text-xs text-slate-500 mt-1">
+                          Upload or paste a looping handshake video to play behind the homepage Hero section. Sits behind the colorful gradient overlay.
                         </p>
-                        {heroImageUploadError && (
-                          <p className="text-[10px] text-red-600 font-bold">{heroImageUploadError}</p>
-                        )}
+                      </div>
+                      {heroVideoUrl ? (
+                        <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-wider rounded-lg flex items-center space-x-1">
+                          <CheckCircle className="w-3 h-3" />
+                          <span>Video Active</span>
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-blue-200">
+                          Handshake Photo Active
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Video Preview or Handshake Fallback */}
+                    <div className="relative rounded-xl overflow-hidden aspect-video bg-slate-950 border border-slate-200 flex items-center justify-center">
+                      {heroVideoUrl ? (
+                        <video
+                          key={heroVideoUrl}
+                          src={heroVideoUrl}
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                          controls
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="relative w-full h-full">
+                          <img
+                            src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1920&q=80"
+                            alt="Handshake fallback"
+                            className="w-full h-full object-cover animate-ken-burns"
+                          />
+                          <div className="absolute inset-0 bg-slate-950/40 flex items-center justify-center text-center p-4">
+                            <span className="text-white text-xs font-bold bg-slate-900/80 px-3 py-1.5 rounded-xl border border-white/20">
+                              No video set — using Ken Burns animated handshake photo
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {heroVideoUploadError && (
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs flex items-center space-x-2">
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        <span>{heroVideoUploadError}</span>
+                      </div>
+                    )}
+
+                    {/* Action Controls */}
+                    <div className="space-y-3 pt-1">
+                      {/* Direct Upload Button */}
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                          Upload Video File (Max 30MB)
+                        </label>
+                        <div className="flex items-center space-x-3">
+                          <label className={`inline-flex items-center px-4 py-2.5 rounded-xl text-xs font-bold text-white transition-all cursor-pointer shadow-md ${
+                            isUploadingHeroVideo ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
+                          }`}>
+                            {isUploadingHeroVideo ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                <span>Uploading to Cloudinary (up to 30MB)...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="w-4 h-4 mr-2" />
+                                <span>Choose Handshake Video...</span>
+                              </>
+                            )}
+                            <input
+                              type="file"
+                              accept="video/mp4,video/webm,video/ogg,video/quicktime"
+                              disabled={isUploadingHeroVideo}
+                              onChange={handleHeroVideoUpload}
+                              className="hidden"
+                            />
+                          </label>
+                          <span className="text-[11px] text-slate-400">Direct Cloudinary upload (MP4/WebM)</span>
+                        </div>
+                      </div>
+
+                      {/* Manual Video URL Field */}
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                          Or Paste Video URL Manually
+                        </label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="url"
+                            value={manualHeroVideoUrl}
+                            onChange={(e) => setManualHeroVideoUrl(e.target.value)}
+                            placeholder="https://res.cloudinary.com/.../handshake.mp4"
+                            className="flex-1 px-3 py-2 border rounded-xl text-xs font-mono"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleSaveManualHeroVideo}
+                            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl cursor-pointer"
+                          >
+                            Save URL
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Remove Video Button */}
+                      {heroVideoUrl && (
+                        <div className="pt-2 flex justify-end">
+                          <button
+                            type="button"
+                            onClick={handleRemoveHeroVideo}
+                            className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Remove Video & Use Photo</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* About Bio Form */}
+                  <form onSubmit={handleSaveAbout} className="bg-white rounded-xl border border-slate-200 p-6 space-y-4">
+                    <h3 className="text-lg font-bold text-slate-900">Edit Developer / Studio Story</h3>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Title</label>
+                      <input
+                        type="text"
+                        value={aboutForm.title}
+                        onChange={(e) => setAboutForm({ ...aboutForm, title: e.target.value })}
+                        className="w-full px-3 py-2 border rounded-lg text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Bio / Story Paragraphs</label>
+                      <textarea
+                        rows={6}
+                        value={aboutForm.story}
+                        onChange={(e) => setAboutForm({ ...aboutForm, story: e.target.value })}
+                        className="w-full p-2.5 border rounded-lg text-sm"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Years Experience</label>
+                        <input
+                          type="number"
+                          value={aboutForm.yearsExperience}
+                          onChange={(e) => setAboutForm({ ...aboutForm, yearsExperience: parseInt(e.target.value) || 0 })}
+                          className="w-full px-3 py-2 border rounded-lg text-sm"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Apps Built</label>
+                        <input
+                          type="number"
+                          value={aboutForm.appsBuilt}
+                          onChange={(e) => setAboutForm({ ...aboutForm, appsBuilt: parseInt(e.target.value) || 0 })}
+                          className="w-full px-3 py-2 border rounded-lg text-sm"
+                        />
                       </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Main Headline
-                    </label>
-                    <input
-                      type="text"
-                      value={aboutForm.title}
-                      onChange={(e) => setAboutForm({ ...aboutForm, title: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-600"
-                      required
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Years of Experience
-                      </label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Skills (Comma separated)</label>
                       <input
-                        type="number"
-                        value={aboutForm.yearsExperience}
-                        onChange={(e) => setAboutForm({ ...aboutForm, yearsExperience: parseInt(e.target.value) || 0 })}
+                        type="text"
+                        value={skillsInput}
+                        onChange={(e) => setSkillsInput(e.target.value)}
+                        placeholder="React Native, TypeScript, Express, Firebase"
                         className="w-full px-3 py-2 border rounded-lg text-sm"
                       />
                     </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Apps Delivered
-                      </label>
-                      <input
-                        type="number"
-                        value={aboutForm.appsBuilt}
-                        onChange={(e) => setAboutForm({ ...aboutForm, appsBuilt: parseInt(e.target.value) || 0 })}
-                        className="w-full px-3 py-2 border rounded-lg text-sm"
-                      />
-                    </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Story & Background (Paragraphs)
-                    </label>
-                    <textarea
-                      rows={6}
-                      value={aboutForm.story}
-                      onChange={(e) => setAboutForm({ ...aboutForm, story: e.target.value })}
-                      className="w-full p-3 border rounded-lg text-sm leading-relaxed"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Skills & Tech Stack (Comma separated)
-                    </label>
-                    <input
-                      type="text"
-                      value={skillsInput}
-                      onChange={(e) => setSkillsInput(e.target.value)}
-                      placeholder="React Native, TypeScript, Express, Firebase"
-                      className="w-full px-3 py-2 border rounded-lg text-sm"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full sm:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-blue-100 transition-all active:scale-95"
-                  >
-                    Save About Bio
-                  </button>
-                </form>
+                    <button
+                      type="submit"
+                      className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest text-xs rounded-xl shadow-lg transition-all cursor-pointer"
+                    >
+                      Save About Bio
+                    </button>
+                  </form>
+                </div>
               )}
 
-              {/* TAB 4: TESTIMONIALS */}
+              {/* TAB 7: TESTIMONIALS */}
               {activeTab === 'testimonials' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
@@ -1627,7 +2325,7 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
                           item: { clientName: '', company: '', role: '', quote: '', rating: 5 },
                         })
                       }
-                      className="px-4 py-2 bg-blue-600 text-white font-semibold text-xs rounded-xl hover:bg-blue-700"
+                      className="px-4 py-2 bg-blue-600 text-white font-semibold text-xs rounded-xl hover:bg-blue-700 cursor-pointer"
                     >
                       <Plus className="w-4 h-4 mr-1 inline" /> Add Testimonial
                     </button>
@@ -1640,16 +2338,10 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
                           <div className="flex items-start justify-between">
                             <span className="text-xs font-bold text-slate-800">{test.clientName}</span>
                             <div className="flex space-x-1">
-                              <button
-                                onClick={() => setTestimonialModal({ isOpen: true, item: test })}
-                                className="p-1 text-slate-400 hover:text-blue-600"
-                              >
+                              <button onClick={() => setTestimonialModal({ isOpen: true, item: test })} className="p-1 text-slate-400 hover:text-blue-600 cursor-pointer">
                                 <Edit2 className="w-3.5 h-3.5" />
                               </button>
-                              <button
-                                onClick={() => handleDeleteTestimonial(test.id)}
-                                className="p-1 text-slate-400 hover:text-red-600"
-                              >
+                              <button onClick={() => handleDeleteTestimonial(test.id)} className="p-1 text-slate-400 hover:text-red-600 cursor-pointer">
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
@@ -1663,7 +2355,7 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
                 </div>
               )}
 
-              {/* TAB 5: FAQS */}
+              {/* TAB 8: FAQS */}
               {activeTab === 'faqs' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
@@ -1678,7 +2370,7 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
                           item: { question: '', answer: '' },
                         })
                       }
-                      className="px-4 py-2 bg-blue-600 text-white font-semibold text-xs rounded-xl hover:bg-blue-700"
+                      className="px-4 py-2 bg-blue-600 text-white font-semibold text-xs rounded-xl hover:bg-blue-700 cursor-pointer"
                     >
                       <Plus className="w-4 h-4 mr-1 inline" /> Add FAQ
                     </button>
@@ -1690,16 +2382,10 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
                         <div className="flex items-start justify-between">
                           <h4 className="font-bold text-slate-900 text-sm">{faq.question}</h4>
                           <div className="flex space-x-1">
-                            <button
-                              onClick={() => setFaqModal({ isOpen: true, item: faq })}
-                              className="p-1 text-slate-400 hover:text-blue-600"
-                            >
+                            <button onClick={() => setFaqModal({ isOpen: true, item: faq })} className="p-1 text-slate-400 hover:text-blue-600 cursor-pointer">
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
-                            <button
-                              onClick={() => handleDeleteFAQ(faq.id)}
-                              className="p-1 text-slate-400 hover:text-red-600"
-                            >
+                            <button onClick={() => handleDeleteFAQ(faq.id)} className="p-1 text-slate-400 hover:text-red-600 cursor-pointer">
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
@@ -1711,7 +2397,7 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
                 </div>
               )}
 
-              {/* TAB 6: PRIVATE FEEDBACK */}
+              {/* TAB 9: PRIVATE FEEDBACK */}
               {activeTab === 'feedback' && (
                 <div className="space-y-4">
                   <h3 className="text-lg font-bold text-slate-900">Visitor Feedback Submissions</h3>
@@ -1731,18 +2417,51 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
                 </div>
               )}
 
-              {/* TAB 7: EMAIL NOTIFICATIONS */}
+              {/* TAB 10: EMAIL NOTIFICATIONS & BUSINESS EMAIL */}
               {activeTab === 'email' && (
                 <div className="space-y-6 max-w-xl">
                   <form onSubmit={handleSaveEmailSettings} className="bg-white rounded-xl border border-slate-200 p-6 space-y-4">
-                    <h3 className="text-lg font-bold text-slate-900">Email Alerts & Notifications</h3>
+                    <h3 className="text-lg font-bold text-slate-900">Email Alerts & Contact Settings</h3>
                     <p className="text-xs text-slate-500">
-                      Configure email notification triggers when new client intake requests are submitted.
+                      Configure your business email for client Fast Review emails and notification alerts.
                     </p>
 
                     <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Business Email Address (Fast Review Target) <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        value={businessEmail}
+                        onChange={(e) => setBusinessEmail(e.target.value)}
+                        placeholder="e.g. contact@deemaker.com"
+                        className="w-full px-3 py-2 border rounded-lg text-sm font-medium"
+                        required
+                      />
+                      <span className="text-[11px] text-slate-500 block mt-1">
+                        When customers tap "Fast Review by Email", their email client opens with To: set to this address.
+                      </span>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        WhatsApp Direct Phone Number (International format)
+                      </label>
+                      <input
+                        type="text"
+                        value={whatsappNumber}
+                        onChange={(e) => setWhatsappNumber(e.target.value)}
+                        placeholder="e.g. 2349070392028"
+                        className="w-full px-3 py-2 border rounded-lg text-sm font-medium"
+                      />
+                      <span className="text-[11px] text-slate-500 block mt-1">
+                        Digits only with country code (e.g. 2349070392028). Used by the green "Send to WhatsApp" button on the customer confirmation screen.
+                      </span>
+                    </div>
+
+                    <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Notification Email Address
+                        Admin Notification Email Address
                       </label>
                       <input
                         type="email"
@@ -1768,7 +2487,7 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
 
                     <button
                       type="submit"
-                      className="px-5 py-2.5 bg-blue-600 text-white font-semibold text-xs rounded-xl hover:bg-blue-700"
+                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-md cursor-pointer"
                     >
                       Save Email Preferences
                     </button>
@@ -1788,6 +2507,117 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
           )}
         </div>
       </div>
+
+      {/* INTAKE QUESTION MODAL */}
+      {questionModal.isOpen && (
+        <div className="fixed inset-0 z-60 bg-slate-900/60 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 overflow-y-auto max-h-[90vh]">
+            <h3 className="text-lg font-bold text-slate-900 mb-4">
+              {questionModal.item?.id ? 'Edit Question' : 'Add Intake Question'}
+            </h3>
+            <form onSubmit={handleSaveQuestion} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Question Label / Prompt</label>
+                <input
+                  type="text"
+                  value={questionModal.item?.label || ''}
+                  onChange={(e) => setQuestionModal({ ...questionModal, item: { ...questionModal.item, label: e.target.value } })}
+                  placeholder="e.g. What problem is your app solving?"
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Section</label>
+                  <select
+                    value={questionModal.item?.section || 'Project scope'}
+                    onChange={(e) => setQuestionModal({ ...questionModal, item: { ...questionModal.item, section: e.target.value } })}
+                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                  >
+                    <option value="Project scope">Project scope</option>
+                    <option value="Technical and access">Technical and access</option>
+                    <option value="Business logic">Business logic</option>
+                    <option value="Practical / contract">Practical / contract</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Applies To</label>
+                  <select
+                    value={questionModal.item?.appliesTo || 'both'}
+                    onChange={(e) => setQuestionModal({ ...questionModal, item: { ...questionModal.item, appliesTo: e.target.value as any } })}
+                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                  >
+                    <option value="both">Both (App & Website)</option>
+                    <option value="app">App Category Only</option>
+                    <option value="website">Website Category Only</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Input Type</label>
+                  <select
+                    value={questionModal.item?.type || 'long_text'}
+                    onChange={(e) => setQuestionModal({ ...questionModal, item: { ...questionModal.item, type: e.target.value as any } })}
+                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                  >
+                    <option value="short_text">Short Text (Single line)</option>
+                    <option value="long_text">Long Text (Multi-line paragraph)</option>
+                    <option value="select">Dropdown Select</option>
+                    <option value="multi_select">Multi-Select Checkboxes</option>
+                    <option value="yes_no">Yes / No Toggle</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center pt-5">
+                  <label className="flex items-center space-x-2 cursor-pointer font-bold text-slate-800">
+                    <input
+                      type="checkbox"
+                      checked={questionModal.item?.required || false}
+                      onChange={(e) => setQuestionModal({ ...questionModal, item: { ...questionModal.item, required: e.target.checked } })}
+                      className="w-4 h-4 text-blue-600 rounded"
+                    />
+                    <span>Is Required?</span>
+                  </label>
+                </div>
+              </div>
+
+              {(questionModal.item?.type === 'select' || questionModal.item?.type === 'multi_select') && (
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Options (Comma separated)</label>
+                  <input
+                    type="text"
+                    value={Array.isArray(questionModal.item?.options) ? questionModal.item?.options.join(', ') : questionModal.item?.options || ''}
+                    onChange={(e) => setQuestionModal({ ...questionModal, item: { ...questionModal.item, options: e.target.value.split(',').map(s => s.trim()).filter(Boolean) } })}
+                    placeholder="e.g. Option 1, Option 2, Option 3"
+                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Note / Hint Text (Optional)</label>
+                <input
+                  type="text"
+                  value={questionModal.item?.note || ''}
+                  onChange={(e) => setQuestionModal({ ...questionModal, item: { ...questionModal.item, note: e.target.value } })}
+                  placeholder="e.g. Links welcome or You can send files later"
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2">
+                <button type="button" onClick={() => setQuestionModal({ isOpen: false, item: null })} className="px-4 py-2 border rounded-lg cursor-pointer">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold cursor-pointer">Save Question</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* PORTFOLIO EDIT MODAL */}
       {portfolioModal.isOpen && (
@@ -1830,301 +2660,15 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
                 />
               </div>
 
-              {/* PORTFOLIO COVER IMAGE FILE PICKER */}
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Portfolio Image <span className="text-red-500">*</span>
-                </label>
-
-                {portfolioModal.item?.imageUrl ? (
-                  <div className="space-y-2">
-                    <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-900 max-h-48 group">
-                      <img
-                        src={portfolioModal.item.imageUrl}
-                        alt="Portfolio Preview"
-                        className="w-full h-36 object-cover"
-                      />
-                      <div className="absolute inset-0 bg-slate-900/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2 p-2">
-                        <label className="px-3 py-1.5 bg-white text-slate-800 text-xs font-semibold rounded-lg shadow cursor-pointer hover:bg-slate-100 flex items-center">
-                          <Upload className="w-3.5 h-3.5 mr-1 text-blue-600" />
-                          Replace Image
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageFileUpload}
-                            className="hidden"
-                          />
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setPortfolioModal((prev) => ({
-                              ...prev,
-                              item: { ...prev.item, imageUrl: '' },
-                            }))
-                          }
-                          className="px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg shadow hover:bg-red-700 flex items-center cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5 mr-1" />
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between text-[11px] text-slate-500">
-                      <span className="truncate max-w-[220px] text-slate-600 font-mono">
-                        {portfolioModal.item.imageUrl}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setPortfolioModal((prev) => ({
-                            ...prev,
-                            item: { ...prev.item, imageUrl: '' },
-                          }))
-                        }
-                        className="text-red-600 hover:underline font-medium cursor-pointer"
-                      >
-                        Remove Image
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="border-2 border-dashed border-slate-200 hover:border-blue-500 rounded-xl p-4 text-center transition-colors bg-slate-50/50">
-                      {isUploadingImage ? (
-                        <div className="py-3 flex flex-col items-center justify-center space-y-2 text-blue-600">
-                          <Loader2 className="w-6 h-6 animate-spin" />
-                          <span className="text-xs font-semibold">Uploading image to Cloudinary...</span>
-                        </div>
-                      ) : (
-                        <div>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            id="portfolio-image-upload"
-                            onChange={handleImageFileUpload}
-                            className="hidden"
-                          />
-                          <label
-                            htmlFor="portfolio-image-upload"
-                            className="cursor-pointer flex flex-col items-center justify-center space-y-1.5 py-2"
-                          >
-                            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-                              <Upload className="w-5 h-5" />
-                            </div>
-                            <span className="text-xs font-bold text-slate-800">
-                              Select Image from Device Gallery
-                            </span>
-                            <span className="text-[11px] text-slate-500">
-                              JPG, PNG, WEBP or GIF (Max 30MB)
-                            </span>
-                          </label>
-                        </div>
-                      )}
-                    </div>
-
-                    {!showManualImageUrl && (
-                      <button
-                        type="button"
-                        onClick={() => setShowManualImageUrl(true)}
-                        className="text-[11px] text-blue-600 hover:underline font-medium flex items-center cursor-pointer"
-                      >
-                        <Link className="w-3 h-3 mr-1" />
-                        Or paste image URL manually
-                      </button>
-                    )}
-
-                    {showManualImageUrl && (
-                      <div className="mt-2 space-y-1">
-                        <input
-                          type="url"
-                          placeholder="https://..."
-                          value={portfolioModal.item?.imageUrl || ''}
-                          onChange={(e) =>
-                            setPortfolioModal({
-                              ...portfolioModal,
-                              item: { ...portfolioModal.item, imageUrl: e.target.value },
-                            })
-                          }
-                          className="w-full px-3 py-1.5 border rounded-lg text-xs"
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {imageUploadError && (
-                  <div className="mt-1.5 flex items-center space-x-1.5 text-xs text-red-600 bg-red-50 p-2 rounded-lg border border-red-100">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                    <span>{imageUploadError}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* PORTFOLIO DEMO VIDEO FILE PICKER */}
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Demo Video (Optional)
-                </label>
-
-                {portfolioModal.item?.videoUrl ? (
-                  <div className="space-y-2">
-                    <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-black max-h-48">
-                      {portfolioModal.item.videoUrl.match(/\.(mp4|webm|mov|m4v)(\?.*)?$/i) ||
-                      portfolioModal.item.videoUrl.includes('portfolio-uploads') ? (
-                        <video
-                          src={portfolioModal.item.videoUrl}
-                          controls
-                          className="w-full h-36 object-contain"
-                        />
-                      ) : (
-                        <div className="p-3 text-white text-xs space-y-1">
-                          <span className="font-semibold text-blue-400 block">External Video URL:</span>
-                          <span className="truncate block font-mono text-[11px] text-slate-300">
-                            {portfolioModal.item.videoUrl}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between text-[11px]">
-                      <label className="text-blue-600 hover:underline font-medium cursor-pointer flex items-center">
-                        <Upload className="w-3 h-3 mr-1" />
-                        Replace Video
-                        <input
-                          type="file"
-                          accept="video/*"
-                          onChange={handleVideoFileUpload}
-                          className="hidden"
-                        />
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setPortfolioModal((prev) => ({
-                            ...prev,
-                            item: { ...prev.item, videoUrl: '' },
-                          }))
-                        }
-                        className="text-red-600 hover:underline font-medium cursor-pointer"
-                      >
-                        Remove Video
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="border-2 border-dashed border-slate-200 hover:border-purple-500 rounded-xl p-4 text-center transition-colors bg-slate-50/50">
-                      {isUploadingVideo ? (
-                        <div className="py-3 flex flex-col items-center justify-center space-y-2 text-purple-600">
-                          <Loader2 className="w-6 h-6 animate-spin" />
-                          <span className="text-xs font-semibold">Uploading video to Cloudinary...</span>
-                        </div>
-                      ) : (
-                        <div>
-                          <input
-                            type="file"
-                            accept="video/*"
-                            id="portfolio-video-upload"
-                            onChange={handleVideoFileUpload}
-                            className="hidden"
-                          />
-                          <label
-                            htmlFor="portfolio-video-upload"
-                            className="cursor-pointer flex flex-col items-center justify-center space-y-1.5 py-2"
-                          >
-                            <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
-                              <Video className="w-5 h-5" />
-                            </div>
-                            <span className="text-xs font-bold text-slate-800">
-                              Select Video from Device Gallery
-                            </span>
-                            <span className="text-[11px] text-slate-500">
-                              MP4, WebM, MOV or M4V (Max 30MB)
-                            </span>
-                          </label>
-                        </div>
-                      )}
-                    </div>
-
-                    {!showManualVideoUrl && (
-                      <button
-                        type="button"
-                        onClick={() => setShowManualVideoUrl(true)}
-                        className="text-[11px] text-blue-600 hover:underline font-medium flex items-center cursor-pointer"
-                      >
-                        <Link className="w-3 h-3 mr-1" />
-                        Or paste video URL manually
-                      </button>
-                    )}
-
-                    {showManualVideoUrl && (
-                      <div className="mt-2 space-y-1">
-                        <input
-                          type="url"
-                          placeholder="https://..."
-                          value={portfolioModal.item?.videoUrl || ''}
-                          onChange={(e) =>
-                            setPortfolioModal({
-                              ...portfolioModal,
-                              item: { ...portfolioModal.item, videoUrl: e.target.value },
-                            })
-                          }
-                          className="w-full px-3 py-1.5 border rounded-lg text-xs"
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {videoUploadError && (
-                  <div className="mt-1.5 flex items-center space-x-1.5 text-xs text-red-600 bg-red-50 p-2 rounded-lg border border-red-100">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                    <span>{videoUploadError}</span>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Tech Stack (Comma separated)</label>
-                <input
-                  type="text"
-                  value={portfolioModal.item?.techStack as any || ''}
-                  onChange={(e) =>
-                    setPortfolioModal({
-                      ...portfolioModal,
-                      item: { ...portfolioModal.item, techStack: e.target.value as any },
-                    })
-                  }
-                  placeholder="React Native, TypeScript, Firebase"
-                  className="w-full px-3 py-2 border rounded-lg text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Description / Note</label>
-                <textarea
-                  rows={3}
-                  value={portfolioModal.item?.description || ''}
-                  onChange={(e) =>
-                    setPortfolioModal({
-                      ...portfolioModal,
-                      item: { ...portfolioModal.item, description: e.target.value },
-                    })
-                  }
-                  className="w-full p-2.5 border rounded-lg text-sm"
-                  required
-                />
-              </div>
-
               <div className="flex justify-end space-x-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setPortfolioModal({ isOpen: false, item: null })}
-                  className="px-4 py-2 border rounded-lg"
+                  className="px-4 py-2 border rounded-lg cursor-pointer"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold">
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold cursor-pointer">
                   Save Item
                 </button>
               </div>
@@ -2207,16 +2751,8 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
               </div>
 
               <div className="flex justify-end space-x-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setTestimonialModal({ isOpen: false, item: null })}
-                  className="px-4 py-2 border rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold">
-                  Save Quote
-                </button>
+                <button type="button" onClick={() => setTestimonialModal({ isOpen: false, item: null })} className="px-4 py-2 border rounded-lg cursor-pointer">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold cursor-pointer">Save Testimonial</button>
               </div>
             </form>
           </div>
@@ -2228,7 +2764,7 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
         <div className="fixed inset-0 z-60 bg-slate-900/60 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
             <h3 className="text-lg font-bold text-slate-900 mb-4">
-              {faqModal.item?.id ? 'Edit FAQ Entry' : 'New FAQ Entry'}
+              {faqModal.item?.id ? 'Edit FAQ' : 'New FAQ'}
             </h3>
             <form onSubmit={handleSaveFAQ} className="space-y-3 text-xs">
               <div>
@@ -2264,30 +2800,22 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
               </div>
 
               <div className="flex justify-end space-x-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setFaqModal({ isOpen: false, item: null })}
-                  className="px-4 py-2 border rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold">
-                  Save FAQ
-                </button>
+                <button type="button" onClick={() => setFaqModal({ isOpen: false, item: null })} className="px-4 py-2 border rounded-lg cursor-pointer">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold cursor-pointer">Save FAQ</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* MY APP MODAL */}
+      {/* MY APPS MODAL */}
       {myAppModal.isOpen && (
         <div className="fixed inset-0 z-60 bg-slate-900/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 overflow-y-auto max-h-[90vh]">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
             <h3 className="text-lg font-bold text-slate-900 mb-4">
-              {myAppModal.item?.id ? 'Edit My App' : 'New My App'}
+              {myAppModal.item?.id ? 'Edit App Entry' : 'New App Showcase'}
             </h3>
-            <form onSubmit={handleSaveMyApp} className="space-y-4 text-xs">
+            <form onSubmit={handleSaveMyApp} className="space-y-3 text-xs">
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">App Name</label>
                 <input
@@ -2298,214 +2826,21 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
                   required
                 />
               </div>
+
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">Description</label>
                 <textarea
-                  rows={3}
+                  rows={2}
                   value={myAppModal.item?.description || ''}
                   onChange={(e) => setMyAppModal({ ...myAppModal, item: { ...myAppModal.item, description: e.target.value } })}
                   className="w-full p-2.5 border rounded-lg text-sm"
                   required
                 />
               </div>
-              
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Screenshots ({myAppModal.item?.images?.length || 0}) <span className="text-[11px] font-normal text-slate-500">(Max 30MB)</span>
-                </label>
-                <div className="grid grid-cols-4 gap-2 mb-2">
-                  {myAppModal.item?.images?.map((url: string, i: number) => (
-                    <div key={i} className="relative group aspect-video">
-                      <img src={url} className="w-full h-full object-cover rounded border" />
-                      <button 
-                        type="button"
-                        onClick={() => setMyAppModal({ ...myAppModal, item: { ...myAppModal.item, images: myAppModal.item.images.filter((_: any, idx: number) => idx !== i) } })}
-                        className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100"
-                      >
-                        <Trash2 size={10} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <input type="file" accept="image/*" onChange={handleMyAppImageUpload} className="hidden" id="myapp-img-upload" disabled={isUploadingMyAppImage} />
-                <label htmlFor="myapp-img-upload" className="inline-block px-3 py-2 bg-slate-100 rounded-lg cursor-pointer hover:bg-slate-200">
-                  {isUploadingMyAppImage ? 'Uploading...' : '+ Upload Screenshot'}
-                </label>
-                {imageUploadError && (
-                  <p className="text-xs text-red-600 mt-1 font-medium">{imageUploadError}</p>
-                )}
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="font-semibold text-slate-700">
-                    App Installer Package / Build File (Optional)
-                  </label>
-                  <span className="text-[11px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
-                    APK, IPA, ZIP (Max 100MB)
-                  </span>
-                </div>
-
-                {myAppModal.item?.downloadUrl ? (
-                  <div className="space-y-2">
-                    <div className="p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-xl flex items-center justify-between gap-3">
-                      <div className="flex items-center space-x-2.5 min-w-0">
-                        <div className="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
-                          <Package className="w-5 h-5" />
-                        </div>
-                        <div className="min-w-0">
-                          <span className="block text-xs font-bold text-slate-900 truncate">
-                            {myAppModal.item.fileName || 'Attached App Package'}
-                          </span>
-                          <span className="block text-[11px] text-slate-500 truncate font-mono">
-                            {myAppModal.item.downloadUrl}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-1.5 flex-shrink-0">
-                        <label className="px-2.5 py-1.5 bg-white text-slate-700 text-xs font-semibold rounded-lg shadow-xs hover:bg-slate-50 border border-slate-200 cursor-pointer flex items-center">
-                          <Upload className="w-3.5 h-3.5 mr-1 text-emerald-600" />
-                          Replace
-                          <input
-                            type="file"
-                            accept=".apk,.ipa,.zip,application/vnd.android.package-archive,application/zip,application/octet-stream,application/x-zip-compressed"
-                            onChange={handleMyAppBuildUpload}
-                            className="hidden"
-                          />
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setMyAppModal((prev) => ({
-                              ...prev,
-                              item: { ...prev.item, downloadUrl: '', fileName: '' },
-                            }))
-                          }
-                          className="px-2.5 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-semibold rounded-lg border border-red-200 flex items-center cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5 mr-1" />
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                        Download Display Filename
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. MyClientApp-release.apk"
-                        value={myAppModal.item?.fileName || ''}
-                        onChange={(e) =>
-                          setMyAppModal({
-                            ...myAppModal,
-                            item: { ...myAppModal.item, fileName: e.target.value },
-                          })
-                        }
-                        className="w-full px-3 py-1.5 border rounded-lg text-xs bg-white"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="border-2 border-dashed border-slate-200 hover:border-emerald-500 rounded-xl p-4 text-center transition-colors bg-slate-50/50">
-                      {isUploadingAppFile ? (
-                        <div className="py-3 flex flex-col items-center justify-center space-y-2 text-emerald-600">
-                          <Loader2 className="w-6 h-6 animate-spin" />
-                          <span className="text-xs font-semibold">Uploading installer package (up to 100MB)...</span>
-                        </div>
-                      ) : (
-                        <div>
-                          <input
-                            type="file"
-                            accept=".apk,.ipa,.zip,application/vnd.android.package-archive,application/zip,application/octet-stream,application/x-zip-compressed"
-                            id="myapp-app-upload"
-                            onChange={handleMyAppBuildUpload}
-                            className="hidden"
-                          />
-                          <label
-                            htmlFor="myapp-app-upload"
-                            className="cursor-pointer flex flex-col items-center justify-center space-y-1.5 py-2"
-                          >
-                            <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
-                              <Package className="w-5 h-5" />
-                            </div>
-                            <span className="text-xs font-bold text-slate-800">
-                              Select App Package from Device
-                            </span>
-                            <span className="text-[11px] text-slate-500">
-                              APK (Android), IPA (iOS), or ZIP bundle (Max 100MB)
-                            </span>
-                          </label>
-                        </div>
-                      )}
-                    </div>
-
-                    {!showManualAppUrl && (
-                      <button
-                        type="button"
-                        onClick={() => setShowManualAppUrl(true)}
-                        className="text-[11px] text-emerald-600 hover:underline font-medium flex items-center cursor-pointer"
-                      >
-                        <Link className="w-3 h-3 mr-1" />
-                        Or paste app download URL manually
-                      </button>
-                    )}
-
-                    {showManualAppUrl && (
-                      <div className="mt-2 space-y-2">
-                        <input
-                          type="url"
-                          placeholder="https://... (Direct APK/ZIP download link)"
-                          value={myAppModal.item?.downloadUrl || ''}
-                          onChange={(e) =>
-                            setMyAppModal({
-                              ...myAppModal,
-                              item: { ...myAppModal.item, downloadUrl: e.target.value },
-                            })
-                          }
-                          className="w-full px-3 py-1.5 border rounded-lg text-xs"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Custom display filename (e.g. MyClientApp.apk)"
-                          value={myAppModal.item?.fileName || ''}
-                          onChange={(e) =>
-                            setMyAppModal({
-                              ...myAppModal,
-                              item: { ...myAppModal.item, fileName: e.target.value },
-                            })
-                          }
-                          className="w-full px-3 py-1.5 border rounded-lg text-xs"
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {appFileUploadError && (
-                  <div className="mt-1.5 flex items-center space-x-1.5 text-xs text-red-600 bg-red-50 p-2 rounded-lg border border-red-100">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                    <span>{appFileUploadError}</span>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">How it was made</label>
-                <textarea
-                  rows={3}
-                  value={myAppModal.item?.howItWasMade || ''}
-                  onChange={(e) => setMyAppModal({ ...myAppModal, item: { ...myAppModal.item, howItWasMade: e.target.value } })}
-                  className="w-full p-2.5 border rounded-lg text-sm"
-                  placeholder="Tech stack, challenges, etc."
-                />
-              </div>
 
               <div className="flex justify-end space-x-2 pt-2">
-                <button type="button" onClick={() => setMyAppModal({ isOpen: false, item: null })} className="px-4 py-2 border rounded-lg">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold">Save App</button>
+                <button type="button" onClick={() => setMyAppModal({ isOpen: false, item: null })} className="px-4 py-2 border rounded-lg cursor-pointer">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold cursor-pointer">Save App</button>
               </div>
             </form>
           </div>
@@ -2603,8 +2938,8 @@ export const ProducerPortal: React.FC<ProducerPortalProps> = ({
               </div>
 
               <div className="flex justify-end space-x-2 pt-2">
-                <button type="button" onClick={() => setPricingModal({ isOpen: false, item: null })} className="px-4 py-2 border rounded-lg">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold">Save Tier</button>
+                <button type="button" onClick={() => setPricingModal({ isOpen: false, item: null })} className="px-4 py-2 border rounded-lg cursor-pointer">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold cursor-pointer">Save Tier</button>
               </div>
             </form>
           </div>

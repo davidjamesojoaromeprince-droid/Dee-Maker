@@ -56,18 +56,22 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({ onStartRequest }) => {
   ];
 
   return (
-    <section id="how-it-works" className="py-16 sm:py-24 bg-slate-50 border-b border-slate-200/80">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="how-it-works" className="relative py-20 sm:py-28 bg-[#0B1020] border-b border-indigo-900/40 overflow-hidden">
+      {/* Ambient Color Blobs */}
+      <div className="absolute top-1/4 left-10 w-96 h-96 bg-blue-600/15 rounded-full blur-[120px] pointer-events-none animate-pulse-glow" />
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-600/15 rounded-full blur-[120px] pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 mb-4">
+          <div className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-white/10 text-cyan-300 border border-white/15 mb-4 backdrop-blur-md shadow-lg">
             {t.howItWorksBadge}
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
+          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight mb-4">
             {t.howItWorksHeader}
           </h2>
-          <p className="text-lg text-slate-600 leading-relaxed">
+          <p className="text-lg text-slate-300 font-medium leading-relaxed">
             {t.howItWorksSubheader}
           </p>
         </div>
@@ -80,37 +84,37 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({ onStartRequest }) => {
             return (
               <div
                 key={step.number}
-                className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between relative hover:shadow-md transition-all group"
+                className="bg-slate-900/60 rounded-3xl p-6 border border-white/10 backdrop-blur-xl shadow-2xl flex flex-col justify-between relative hover:border-indigo-500/60 hover:shadow-[0_0_30px_rgba(79,70,229,0.25)] transition-all group"
               >
                 <div>
                   {/* Top Step Row */}
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                      <Icon className="w-6 h-6" />
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-lg group-hover:scale-110 transition-transform">
+                      <Icon className="w-6 h-6 text-white" />
                     </div>
-                    <span className="text-2xl font-black text-slate-300 font-mono">
+                    <span className="text-2xl font-black text-slate-600 font-mono">
                       {step.number}
                     </span>
                   </div>
 
                   {/* Step Title & Time */}
-                  <h3 className="text-lg font-bold text-slate-900 mb-1">
+                  <h3 className="text-lg font-bold text-white mb-2">
                     {step.title}
                   </h3>
-                  <div className={`inline-block px-2.5 py-0.5 rounded-md text-xs font-semibold border mb-3 ${step.badgeColor}`}>
+                  <div className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-white/10 text-cyan-300 border border-white/15 mb-3">
                     {step.time}
                   </div>
 
                   {/* Description */}
-                  <p className="text-sm text-slate-600 leading-relaxed">
+                  <p className="text-sm text-slate-300 leading-relaxed font-medium">
                     {step.description}
                   </p>
                 </div>
 
                 {/* Arrow connector indicator for non-last items */}
                 {idx < steps.length - 1 && (
-                  <div className="hidden lg:block absolute -right-3 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-1 border border-slate-200 text-slate-400">
-                    <ArrowRight className="w-4 h-4" />
+                  <div className="hidden lg:block absolute -right-3 top-1/2 -translate-y-1/2 z-10 bg-slate-900 rounded-full p-1.5 border border-white/20 text-slate-400 shadow-md">
+                    <ArrowRight className="w-4 h-4 text-cyan-400" />
                   </div>
                 )}
               </div>
@@ -120,14 +124,14 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({ onStartRequest }) => {
         </div>
 
         {/* Bottom CTA Banner */}
-        <div className="mt-12 bg-white rounded-2xl p-6 sm:p-8 border border-blue-100 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="mt-14 bg-gradient-to-r from-slate-900/90 via-indigo-950/80 to-slate-900/90 rounded-3xl p-6 sm:p-8 border border-white/15 backdrop-blur-xl shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6">
           <div>
-            <h4 className="text-lg font-bold text-slate-900">{t.howItWorksBannerTitle}</h4>
-            <p className="text-sm text-slate-600">{t.howItWorksBannerSub}</p>
+            <h4 className="text-xl font-black text-white">{t.howItWorksBannerTitle}</h4>
+            <p className="text-sm text-slate-300 font-medium mt-1">{t.howItWorksBannerSub}</p>
           </div>
           <button
             onClick={handleStartRequest}
-            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 shadow-md shadow-blue-500/10 transition-all cursor-pointer whitespace-nowrap"
+            className="w-full sm:w-auto px-8 py-4 rounded-2xl glow-btn text-white font-black text-sm transition-all cursor-pointer border border-white/20 shadow-xl whitespace-nowrap"
           >
             {t.howItWorksCta}
           </button>

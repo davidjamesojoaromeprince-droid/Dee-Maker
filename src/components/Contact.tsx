@@ -65,19 +65,22 @@ export const Contact: React.FC = () => {
   };
 
   return (
-    <section id="contact" className="py-16 md:py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="contact" className="relative py-20 md:py-28 bg-[#0B1020] border-b border-indigo-900/40 overflow-hidden">
+      {/* Background ambient glow */}
+      <div className="absolute top-1/2 left-10 w-96 h-96 bg-blue-600/15 rounded-full blur-[120px] pointer-events-none -translate-y-1/2" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           {/* Left Column: Direct Contact Info */}
           <div className="lg:col-span-5 space-y-8">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200/50">
+              <span className="text-xs font-bold uppercase tracking-wider text-cyan-300 bg-white/10 px-3.5 py-1.5 rounded-full border border-white/15 backdrop-blur-md">
                 {t.contactBadge}
               </span>
-              <h2 className="text-3xl font-bold text-slate-900 tracking-tight mt-3">
+              <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight mt-4">
                 {t.contactTitle}
               </h2>
-              <p className="text-slate-600 mt-2 text-sm leading-relaxed">
+              <p className="text-slate-300 mt-2 text-sm leading-relaxed font-medium">
                 {t.contactSub}
               </p>
             </div>
@@ -86,17 +89,17 @@ export const Contact: React.FC = () => {
               {/* Email Card */}
               <a
                 href="mailto:deemakers01@gmail.com"
-                className="flex items-center p-4 rounded-2xl border border-slate-200/80 hover:border-blue-300 hover:bg-blue-50/50 transition-all group"
+                className="flex items-center p-5 rounded-3xl bg-slate-900/70 border border-white/10 backdrop-blur-xl hover:border-cyan-400/50 hover:shadow-[0_0_25px_rgba(34,211,238,0.2)] transition-all group"
               >
-                <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mr-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/20 text-cyan-300 flex items-center justify-center mr-4 border border-blue-400/30 group-hover:bg-gradient-to-tr group-hover:from-blue-600 group-hover:to-indigo-600 group-hover:text-white transition-all shadow-md">
                   <Mail className="w-5.5 h-5.5" />
                 </div>
                 <div>
-                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Email Dee-Maker</div>
-                  <div className="text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Email Dee-Maker</div>
+                  <div className="text-base font-black text-white group-hover:text-cyan-300 transition-colors">
                     deemakers01@gmail.com
                   </div>
-                  <div className="text-xs text-slate-500 mt-0.5">Response within 24 hours</div>
+                  <div className="text-xs text-slate-400 mt-0.5 font-medium">Response within 24 hours</div>
                 </div>
               </a>
 
@@ -105,27 +108,27 @@ export const Contact: React.FC = () => {
                 href="https://wa.me/2348059264736"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center p-4 rounded-2xl border border-slate-200/80 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all group"
+                className="flex items-center p-5 rounded-3xl bg-slate-900/70 border border-white/10 backdrop-blur-xl hover:border-emerald-400/50 hover:shadow-[0_0_25px_rgba(16,185,129,0.2)] transition-all group"
               >
-                <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mr-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center mr-4 border border-emerald-400/30 group-hover:bg-gradient-to-tr group-hover:from-emerald-600 group-hover:to-teal-600 group-hover:text-white transition-all shadow-md">
                   <MessageSquare className="w-5.5 h-5.5" />
                 </div>
                 <div>
-                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">WhatsApp Direct</div>
-                  <div className="text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">WhatsApp Direct</div>
+                  <div className="text-base font-black text-white group-hover:text-emerald-300 transition-colors">
                     08059264736
                   </div>
-                  <div className="text-xs text-slate-500 mt-0.5">Instant messaging & quick calls</div>
+                  <div className="text-xs text-slate-400 mt-0.5 font-medium">Instant messaging & quick calls</div>
                 </div>
               </a>
             </div>
 
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80">
-              <div className="flex items-center space-x-2 text-sm font-bold text-slate-900 mb-1">
-                <HeartHandshake className="w-4 h-4 text-blue-600" />
+            <div className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl shadow-xl">
+              <div className="flex items-center space-x-2 text-sm font-bold text-white mb-1">
+                <HeartHandshake className="w-4 h-4 text-cyan-400" />
                 <span>Working Hours & Availability</span>
               </div>
-              <p className="text-xs text-slate-600 leading-relaxed">
+              <p className="text-xs text-slate-300 font-medium leading-relaxed mt-1">
                 Monday – Friday: 09:00 – 18:00 (UTC).
                 Active client projects receive direct priority communication.
               </p>
@@ -134,24 +137,24 @@ export const Contact: React.FC = () => {
 
           {/* Right Column: Private Feedback Form */}
           <div className="lg:col-span-7">
-            <div className="bg-slate-50/80 rounded-2xl p-6 sm:p-8 border border-slate-200/80">
-              <h3 className="text-xl font-bold text-slate-900 mb-1">
+            <div className="bg-slate-900/70 rounded-3xl p-6 sm:p-8 border border-white/10 backdrop-blur-xl shadow-2xl">
+              <h3 className="text-xl font-black text-white mb-1 uppercase tracking-tight">
                 Private Site Feedback
               </h3>
-              <p className="text-slate-600 text-sm mb-6">
+              <p className="text-slate-300 text-sm mb-6 font-medium">
                 Send confidential notes, questions, or comments directly to Dee-Maker.
               </p>
 
               {submitted ? (
-                <div className="py-8 text-center bg-white rounded-xl border border-slate-200 p-6">
-                  <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
-                  <h4 className="text-lg font-bold text-slate-900">Thank You for Your Feedback!</h4>
-                  <p className="text-slate-600 text-sm mt-1">
+                <div className="py-8 text-center bg-slate-950/80 rounded-2xl border border-white/15 p-6">
+                  <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
+                  <h4 className="text-lg font-black text-white">Thank You for Your Feedback!</h4>
+                  <p className="text-slate-300 text-sm mt-1 font-medium">
                     Your note has been received by the Dee-Maker team.
                   </p>
                   <button
                     onClick={() => setSubmitted(false)}
-                    className="mt-4 text-xs font-semibold text-blue-600 hover:underline"
+                    className="mt-4 text-xs font-black text-cyan-300 hover:underline uppercase tracking-wider"
                   >
                     Send another note
                   </button>
@@ -159,7 +162,7 @@ export const Contact: React.FC = () => {
               ) : (
                 <form onSubmit={handleFeedbackSubmit} className="space-y-4">
                   {error && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs flex items-center space-x-2">
+                    <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-rose-300 text-xs flex items-center space-x-2">
                       <AlertCircle className="w-4 h-4 flex-shrink-0" />
                       <span>{error}</span>
                     </div>
@@ -167,7 +170,7 @@ export const Contact: React.FC = () => {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
                         Your Name
                       </label>
                       <input
@@ -175,13 +178,13 @@ export const Contact: React.FC = () => {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Alex Rivera"
-                        className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+                        className="w-full px-4 py-3 rounded-xl border border-white/15 bg-slate-950/80 text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 font-medium"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
                         Your Email
                       </label>
                       <input
@@ -189,14 +192,14 @@ export const Contact: React.FC = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="alex@example.com"
-                        className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+                        className="w-full px-4 py-3 rounded-xl border border-white/15 bg-slate-950/80 text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 font-medium"
                         required
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
                       Private Message / Feedback
                     </label>
                     <textarea
@@ -204,7 +207,7 @@ export const Contact: React.FC = () => {
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder="Share your feedback, site comments, or general question..."
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+                      className="w-full px-4 py-3 rounded-xl border border-white/15 bg-slate-950/80 text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 font-medium"
                       required
                     />
                   </div>
@@ -212,9 +215,9 @@ export const Contact: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-xl transition-colors disabled:opacity-60 cursor-pointer"
+                    className="glow-btn w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all disabled:opacity-60 cursor-pointer border border-white/20 shadow-xl"
                   >
-                    <Send className="w-4 h-4 mr-2" />
+                    <Send className="w-4 h-4 mr-2 text-cyan-300" />
                     Submit Private Feedback
                   </button>
                 </form>

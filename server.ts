@@ -383,6 +383,7 @@ const defaultDb = {
       "2026-07-23T16:20:00.000Z - Email alert sent for new request 'BrightCafes Mobile Order' from Sarah Jenkins"
     ]
   },
+  bookings: [],
   myApps: [],
   pricingTiers: [
     {
@@ -443,7 +444,10 @@ async function getDb(): Promise<any> {
         pricingSnap,
         requestsSnap,
         feedbackSnap,
-        settingsDoc
+        settingsDoc,
+        questionsSnap,
+        siteDataDoc,
+        bookingsSnap
       ] = await Promise.all([
         admin.db.collection("about").doc("main").get(),
         admin.db.collection("portfolio").orderBy("createdAt", "desc").get(),
@@ -454,11 +458,21 @@ async function getDb(): Promise<any> {
         admin.db.collection("pricing_tiers").get(),
         admin.db.collection("requests").orderBy("createdAt", "desc").get(),
         admin.db.collection("feedback").orderBy("createdAt", "desc").get(),
-        admin.db.collection("settings").doc("email").get()
+        admin.db.collection("settings").doc("email").get(),
+        admin.db.collection("intake_questions").get(),
+        admin.db.collection("siteData").doc("main").get(),
+        admin.db.collection("call_bookings").orderBy("createdAt", "desc").get().catch(() => ({ docs: [] } as any))
       ]);
 
+      const siteData = siteDataDoc?.exists ? siteDataDoc.data() : {};
+      const aboutObj: any = aboutDoc.exists ? aboutDoc.data() : { ...defaultDb.about };
+      if (siteData?.heroVideoUrl !== undefined) {
+        aboutObj.heroVideoUrl = siteData.heroVideoUrl;
+      }
+
       const firestoreData = {
-        about: aboutDoc.exists ? aboutDoc.data() : defaultDb.about,
+        about: aboutObj,
+        siteData: siteData,
         portfolio: portfolioSnap.docs.map(d => ({ id: d.id, ...d.data() })),
         caseStudies: caseStudiesSnap.docs.map(d => ({ id: d.id, ...d.data() })),
         testimonials: testimonialsSnap.docs.map(d => ({ id: d.id, ...d.data() })),
@@ -466,8 +480,10 @@ async function getDb(): Promise<any> {
         myApps: myAppsSnap.docs.map(d => ({ id: d.id, ...d.data() })),
         pricingTiers: pricingSnap.docs.map(d => ({ id: d.id, ...d.data() })),
         requests: requestsSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+        bookings: bookingsSnap?.docs ? bookingsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() })) : [],
         privateFeedback: feedbackSnap.docs.map(d => ({ id: d.id, ...d.data() })),
-        emailSettings: settingsDoc.exists ? settingsDoc.data() : defaultDb.emailSettings
+        emailSettings: settingsDoc.exists ? settingsDoc.data() : defaultDb.emailSettings,
+        intakeQuestions: questionsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
       };
 
       cachedDb = { ...defaultDb, ...firestoreData };
@@ -546,11 +562,299 @@ function getAiClient() {
   return aiClient;
 }
 
+// HTML escape helper
+function escapeHtml(str: string): string {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// Resend Email Notification Helper
+async function sendNotificationEmail(db: any, subject: string, html: string): Promise<string> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const recipient = (db.emailSettings?.notifyEmail || db.emailSettings?.businessEmail || "").trim();
+
+  // If emailSettings is explicitly disabled
+  if (db.emailSettings && db.emailSettings.enabled === false) {
+    const logMsg = `${new Date().toISOString()} - Email not sent: notifications disabled in settings`;
+    console.log(`[Email] ${logMsg}`);
+    if (!db.emailSettings.logs) db.emailSettings.logs = [];
+    db.emailSettings.logs.unshift(logMsg);
+    return "disabled";
+  }
+
+  const isPlaceholder = !recipient || recipient === "yourbusiness@email.com" || !recipient.includes("@");
+  if (!apiKey || isPlaceholder) {
+    const logMsg = `${new Date().toISOString()} - Email not sent: not configured`;
+    console.log(`[Email] ${logMsg}`);
+    if (!db.emailSettings) db.emailSettings = { enabled: true, logs: [] };
+    if (!db.emailSettings.logs) db.emailSettings.logs = [];
+    db.emailSettings.logs.unshift(logMsg);
+
+    const admin = getFirebaseAdmin();
+    if (admin?.db) {
+      try {
+        await admin.db.collection("settings").doc("email").set(db.emailSettings, { merge: true });
+      } catch (_) {}
+    }
+    return "not_configured";
+  }
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        from: "Dee-Maker <onboarding@resend.dev>",
+        to: [recipient],
+        subject,
+        html
+      })
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      let reason = errText;
+      try {
+        const parsed = JSON.parse(errText);
+        reason = parsed.message || parsed.error || errText;
+      } catch (_) {}
+      const logMsg = `${new Date().toISOString()} - Email failed: ${reason}`;
+      console.error(`[Email] ${logMsg}`);
+      if (!db.emailSettings) db.emailSettings = { enabled: true, logs: [] };
+      if (!db.emailSettings.logs) db.emailSettings.logs = [];
+      db.emailSettings.logs.unshift(logMsg);
+
+      const admin = getFirebaseAdmin();
+      if (admin?.db) {
+        try {
+          await admin.db.collection("settings").doc("email").set(db.emailSettings, { merge: true });
+        } catch (_) {}
+      }
+      return "failed";
+    }
+
+    const logMsg = `${new Date().toISOString()} - Email sent to ${recipient}`;
+    console.log(`[Email] ${logMsg}`);
+    if (!db.emailSettings) db.emailSettings = { enabled: true, logs: [] };
+    if (!db.emailSettings.logs) db.emailSettings.logs = [];
+    db.emailSettings.logs.unshift(logMsg);
+
+    const admin = getFirebaseAdmin();
+    if (admin?.db) {
+      try {
+        await admin.db.collection("settings").doc("email").set(db.emailSettings, { merge: true });
+      } catch (_) {}
+    }
+    return "sent";
+  } catch (err: any) {
+    const reason = err?.message || "network error";
+    const logMsg = `${new Date().toISOString()} - Email failed: ${reason}`;
+    console.error(`[Email] ${logMsg}`);
+    if (!db.emailSettings) db.emailSettings = { enabled: true, logs: [] };
+    if (!db.emailSettings.logs) db.emailSettings.logs = [];
+    db.emailSettings.logs.unshift(logMsg);
+
+    const admin = getFirebaseAdmin();
+    if (admin?.db) {
+      try {
+        await admin.db.collection("settings").doc("email").set(db.emailSettings, { merge: true });
+      } catch (_) {}
+    }
+    return "failed";
+  }
+}
+
+// Format Email HTML for Call Bookings
+function formatCallBookingEmailHtml(booking: {
+  name: string;
+  email: string;
+  phone?: string;
+  date: string;
+  time: string;
+  topic?: string;
+  createdAt: string;
+}): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #0f172a; margin: 0; padding: 24px; }
+    .card { max-width: 580px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .header { background: #0b1020; color: #ffffff; padding: 24px; text-align: left; }
+    .header h2 { margin: 0 0 6px 0; font-size: 20px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .header p { margin: 0; font-size: 13px; color: #94a3b8; }
+    .body { padding: 24px; }
+    .row { display: flex; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
+    .label { width: 140px; font-weight: 700; color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .value { flex: 1; font-size: 14px; color: #0f172a; font-weight: 600; }
+    .highlight { color: #0284c7; font-weight: 800; }
+    .topic-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; margin-top: 16px; font-size: 13px; color: #334155; line-height: 1.5; }
+    .footer { text-align: center; padding: 16px; font-size: 11px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <h2>New 15-Min Intro Call Request</h2>
+      <p>15-minute consultation requested on Dee-Maker Studio</p>
+    </div>
+    <div class="body">
+      <div class="row">
+        <div class="label">Client Name</div>
+        <div class="value">${escapeHtml(booking.name)}</div>
+      </div>
+      <div class="row">
+        <div class="label">Email</div>
+        <div class="value"><a href="mailto:${escapeHtml(booking.email)}" style="color:#0284c7;text-decoration:none;">${escapeHtml(booking.email)}</a></div>
+      </div>
+      <div class="row">
+        <div class="label">Phone / WhatsApp</div>
+        <div class="value">${booking.phone ? escapeHtml(booking.phone) : '<em>Not provided</em>'}</div>
+      </div>
+      <div class="row">
+        <div class="label">Reserved Date</div>
+        <div class="value highlight">${escapeHtml(booking.date)}</div>
+      </div>
+      <div class="row">
+        <div class="label">Reserved Time</div>
+        <div class="value highlight">${escapeHtml(booking.time)} (WAT)</div>
+      </div>
+      <div class="row">
+        <div class="label">Submitted At</div>
+        <div class="value">${new Date(booking.createdAt).toLocaleString()}</div>
+      </div>
+      <div class="topic-box">
+        <strong>Discussion Topic / Concept:</strong><br/>
+        ${escapeHtml(booking.topic || 'App Architecture & Scope Overview')}
+      </div>
+    </div>
+    <div class="footer">
+      Dee-Maker Studio Notification System
+    </div>
+  </div>
+</body>
+</html>
+  `.trim();
+}
+
+// Format Email HTML for Project Intake Requests
+function formatProjectRequestEmailHtml(reqItem: any): string {
+  const qAns = reqItem.questionnaireAnswers || [];
+  let questionnaireRows = "";
+  if (Array.isArray(qAns) && qAns.length > 0) {
+    const valid = qAns.filter((q: any) => {
+      const val = Array.isArray(q.answer) ? q.answer.join(", ") : q.answer;
+      return val && val !== "Not specified" && String(val).trim() !== "";
+    });
+    if (valid.length > 0) {
+      questionnaireRows = `
+        <div style="margin-top: 20px;">
+          <h3 style="font-size: 14px; text-transform: uppercase; color: #64748b; margin-bottom: 10px; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">Questionnaire Responses</h3>
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            ${valid.map((q: any) => {
+              const val = Array.isArray(q.answer) ? q.answer.join(", ") : q.answer;
+              return `
+                <tr>
+                  <td style="padding: 8px 0; font-weight: 700; color: #475569; width: 45%; vertical-align: top;">${escapeHtml(q.label || q.questionId || 'Question')}</td>
+                  <td style="padding: 8px 0; color: #0f172a; vertical-align: top;">${escapeHtml(String(val))}</td>
+                </tr>
+              `;
+            }).join("")}
+          </table>
+        </div>
+      `;
+    }
+  }
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #0f172a; margin: 0; padding: 24px; }
+    .card { max-width: 620px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .header { background: #0b1020; color: #ffffff; padding: 24px; text-align: left; }
+    .header h2 { margin: 0 0 6px 0; font-size: 20px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .header p { margin: 0; font-size: 13px; color: #94a3b8; }
+    .body { padding: 24px; }
+    .row { display: flex; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
+    .label { width: 160px; font-weight: 700; color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .value { flex: 1; font-size: 14px; color: #0f172a; font-weight: 600; }
+    .desc-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; margin-top: 16px; font-size: 13px; color: #334155; line-height: 1.5; }
+    .footer { text-align: center; padding: 16px; font-size: 11px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <h2>New Project Request</h2>
+      <p>Project inquiry received on Dee-Maker Studio</p>
+    </div>
+    <div class="body">
+      <div class="row">
+        <div class="label">Project / App Name</div>
+        <div class="value" style="color:#0284c7;font-weight:800;">${escapeHtml(reqItem.appName)}</div>
+      </div>
+      <div class="row">
+        <div class="label">Client Name</div>
+        <div class="value">${escapeHtml(reqItem.name)}</div>
+      </div>
+      <div class="row">
+        <div class="label">Email</div>
+        <div class="value"><a href="mailto:${escapeHtml(reqItem.email)}" style="color:#0284c7;text-decoration:none;">${escapeHtml(reqItem.email)}</a></div>
+      </div>
+      <div class="row">
+        <div class="label">Phone / WhatsApp</div>
+        <div class="value">${reqItem.phone ? escapeHtml(reqItem.phone) : '<em>Not provided</em>'}</div>
+      </div>
+      <div class="row">
+        <div class="label">Preferred Contact</div>
+        <div class="value">${escapeHtml(reqItem.preferredContact || 'email')}</div>
+      </div>
+      <div class="row">
+        <div class="label">Package Tier</div>
+        <div class="value">${escapeHtml(reqItem.selectedPackage || 'Custom Build')}</div>
+      </div>
+      <div class="row">
+        <div class="label">Project Type</div>
+        <div class="value">${escapeHtml(reqItem.projectType || 'app')}</div>
+      </div>
+      <div class="row">
+        <div class="label">Heard From</div>
+        <div class="value">${escapeHtml(reqItem.heardFrom || 'Unspecified')}</div>
+      </div>
+      <div class="desc-box">
+        <strong>Description / Scope:</strong><br/>
+        ${escapeHtml(reqItem.appDescription || '').replace(/\n/g, '<br/>')}
+      </div>
+      ${questionnaireRows}
+    </div>
+    <div class="footer">
+      Dee-Maker Studio Notification System
+    </div>
+  </div>
+</body>
+</html>
+  `.trim();
+}
+
+
 async function startServer() {
   const app = express();
   app.use(express.json());
 
-  // 1. Get public data (portfolio, about, testimonials, faqs, caseStudies)
+  // 1. Get public data (portfolio, about, testimonials, faqs, caseStudies, intakeQuestions)
   app.get("/api/data", async (req, res) => {
     console.log(`[API] GET /api/data requested from ${req.ip}`);
     try {
@@ -562,7 +866,10 @@ async function startServer() {
         myApps: db.myApps || [],
         pricingTiers: db.pricingTiers || [],
         testimonials: db.testimonials || [],
-        faqs: db.faqs || []
+        faqs: db.faqs || [],
+        intakeQuestions: db.intakeQuestions || [],
+        whatsappNumber: db.siteData?.whatsappNumber || db.emailSettings?.whatsappNumber || "2349070392028",
+        businessEmail: db.emailSettings?.businessEmail || db.emailSettings?.notifyEmail || "deemakers01@gmail.com"
       });
     } catch (err: any) {
       console.error("Error in GET /api/data:", err);
@@ -578,7 +885,7 @@ async function startServer() {
   // 2. Submit Client Intake Request (Home Form)
   app.post("/api/requests", async (req, res) => {
     try {
-      const { name, phone, email, appName, appDescription, preferredContact, heardFrom, selectedPackage, projectType } = req.body;
+      const { name, phone, email, appName, appDescription, preferredContact, heardFrom, selectedPackage, projectType, answers, questionnaireAnswers } = req.body;
 
       if (!name || !email || !appName || !appDescription) {
         return res.status(400).json({ error: "Missing required fields." });
@@ -636,18 +943,28 @@ Requirements:
         status: "New",
         aiConfirmationMessage: aiMessage,
         createdAt: new Date().toISOString(),
-        notes: ""
+        notes: "",
+        answers: answers || {},
+        questionnaireAnswers: questionnaireAnswers || []
       };
 
       if (!db.requests) db.requests = [];
       db.requests.unshift(newRequest);
 
-      // Email Notification trigger
-      if (db.emailSettings && db.emailSettings.enabled) {
-        const logMsg = `${new Date().toISOString()} - Notification queued to ${db.emailSettings.notifyEmail} for new request '${appName}' from ${name}`;
-        if (!db.emailSettings.logs) db.emailSettings.logs = [];
-        db.emailSettings.logs.unshift(logMsg);
+      // Save to Firestore if available
+      const admin = getFirebaseAdmin();
+      if (admin?.db) {
+        try {
+          await admin.db.collection("requests").doc(newRequest.id).set(newRequest);
+        } catch (fsErr) {
+          console.warn("[Firestore] Request write warning:", fsErr);
+        }
       }
+
+      // Real email notification via Resend REST API
+      const emailSubject = `New project request — ${name} — ${appName}`;
+      const emailHtml = formatProjectRequestEmailHtml(newRequest);
+      await sendNotificationEmail(db, emailSubject, emailHtml);
 
       await saveDb(db);
 
@@ -661,6 +978,59 @@ Requirements:
       res.status(500).json({ error: "Failed to submit project request." });
     }
   });
+
+  // Submit 15-Minute Intro Call Booking
+  app.post("/api/bookings", async (req, res) => {
+    try {
+      const { name, email, phone, date, time, topic } = req.body;
+
+      if (!name || !email || !date || !time) {
+        return res.status(400).json({ error: "Name, email, date, and time are required." });
+      }
+
+      const db = await getDb();
+      const newBooking = {
+        id: "call-" + Date.now(),
+        name: String(name).trim(),
+        email: String(email).trim(),
+        phone: phone ? String(phone).trim() : "",
+        date: String(date).trim(),
+        time: String(time).trim(),
+        topic: topic ? String(topic).trim() : "",
+        status: "New",
+        createdAt: new Date().toISOString()
+      };
+
+      if (!db.bookings) db.bookings = [];
+      db.bookings.unshift(newBooking);
+
+      // Save to Firestore if available
+      const admin = getFirebaseAdmin();
+      if (admin?.db) {
+        try {
+          await admin.db.collection("call_bookings").doc(newBooking.id).set(newBooking);
+        } catch (fsErr) {
+          console.warn("[Firestore] call_booking write warning:", fsErr);
+        }
+      }
+
+      // Real email notification via Resend REST API
+      const emailSubject = `New call request — ${newBooking.name} — ${newBooking.date} ${newBooking.time}`;
+      const emailHtml = formatCallBookingEmailHtml(newBooking);
+      await sendNotificationEmail(db, emailSubject, emailHtml);
+
+      await saveDb(db);
+
+      return res.json({
+        success: true,
+        booking: newBooking
+      });
+    } catch (err: any) {
+      console.error("Error creating booking:", err);
+      return res.status(500).json({ error: "Failed to submit call booking." });
+    }
+  });
+
 
   // 3. Submit Private Site Feedback
   app.post("/api/feedback", async (req, res) => {
@@ -748,6 +1118,77 @@ Requirements:
       res.status(500).json({ error: "Failed to delete request." });
     }
   });
+
+  // 6b. Producer: Get All Call Bookings
+  app.get("/api/producer/bookings", async (req, res) => {
+    try {
+      const db = await getDb();
+      res.json({ success: true, bookings: db.bookings || [] });
+    } catch (err: any) {
+      console.error("Error in GET /api/producer/bookings:", err);
+      res.status(500).json({ error: "Failed to fetch bookings." });
+    }
+  });
+
+  // Producer: Update Call Booking Status / Details
+  app.patch("/api/producer/bookings/:id", async (req, res) => {
+    try {
+      const db = await getDb();
+      const { id } = req.params;
+      const { status, topic, date, time } = req.body;
+
+      const booking = (db.bookings || []).find((b: any) => b.id === id);
+      if (!booking) {
+        return res.status(404).json({ error: "Booking not found" });
+      }
+
+      if (status) booking.status = status;
+      if (topic !== undefined) booking.topic = topic;
+      if (date) booking.date = date;
+      if (time) booking.time = time;
+
+      const admin = getFirebaseAdmin();
+      if (admin?.db) {
+        try {
+          await admin.db.collection("call_bookings").doc(id).set(booking, { merge: true });
+        } catch (fsErr) {
+          console.warn("[Firestore] Booking update warning:", fsErr);
+        }
+      }
+
+      await saveDb(db);
+      res.json({ success: true, booking });
+    } catch (err: any) {
+      console.error("Error in PATCH /api/producer/bookings/:id:", err);
+      res.status(500).json({ error: "Failed to update booking." });
+    }
+  });
+
+  // Producer: Delete Call Booking
+  app.delete("/api/producer/bookings/:id", async (req, res) => {
+    try {
+      const db = await getDb();
+      const { id } = req.params;
+
+      db.bookings = (db.bookings || []).filter((b: any) => b.id !== id);
+
+      const admin = getFirebaseAdmin();
+      if (admin?.db) {
+        try {
+          await admin.db.collection("call_bookings").doc(id).delete();
+        } catch (fsErr) {
+          console.warn("[Firestore] Booking delete warning:", fsErr);
+        }
+      }
+
+      await saveDb(db);
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("Error in DELETE /api/producer/bookings/:id:", err);
+      res.status(500).json({ error: "Failed to delete booking." });
+    }
+  });
+
 
 // Safe MIME type extension mapping
 const MIME_EXTENSION_MAP: Record<string, string> = {
@@ -981,10 +1422,6 @@ function uploadToCloudinary(
   app.put("/api/producer/about", async (req, res) => {
     try {
       const db = await getDb();
-      const oldHeroImageUrl = db.about?.heroImageUrl;
-      if (req.body.heroImageUrl !== undefined && oldHeroImageUrl && oldHeroImageUrl !== req.body.heroImageUrl) {
-        await deleteCloudinaryFileFromUrl(oldHeroImageUrl);
-      }
       db.about = { ...db.about, ...req.body };
       await saveDb(db);
       res.json({ success: true, about: db.about });
