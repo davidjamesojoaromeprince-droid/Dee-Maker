@@ -184,5 +184,7 @@ export interface FullProducerData extends AppData {
   intakeQuestions?: IntakeQuestion[];
   heroVideoUrl?: string;
   whatsappNumber?: string;
+  pushSubscriptions?: any[];
+  vapidPublicKey?: string;
 }
 

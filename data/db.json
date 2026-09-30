@@ -24,23 +24,7 @@
       "_nanoseconds": 438000000
     }
   },
-  "portfolio": [
-    {
-      "id": "port-1789558367145",
-      "title": "PayTrack ",
-      "category": "Android",
-      "description": "About PayTrack\nPayTrack is a smart invoicing and business management app built for Nigerian small\nbusiness owners — tailors, plumbers, electricians, shop owners, and service providers who\nneed a simple, reliable way to track money coming in and going out, without the complexity\nof enterprise accounting software.\nKey Features\nProfessional Invoicing — create, send, and track invoices in seconds. Share any\ninvoice as a PDF directly to WhatsApp, email, or SMS with one tap.\nCustomer & Promise Tracking — keep a clean record of every customer and every\n\"promise to pay,\" so nothing gets forgotten.\nAutomatic Payment Reminders — set a due date once, and PayTrack automatically emails\nor texts the customer as it approaches — no manual follow-up needed.\nSecure Online Payments — accept payments directly through the app via Flutterwave,\nNigeria's trusted payment platform.\nExpense Tracking & Real Profit Insight — log business expenses alongside income and\nsee your actual net profit, not just what customers owe you.\nBusiness Analytics — a simple visual dashboard showing revenue trends, your top\ncustomers, and outstanding overdue amounts at a glance.\nInventory & Stock Tracking — track product stock levels and link them directly to\ninvoices, so stock updates automatically as you sell.\nBusiness Search — research anything business-related — industry trends, market\ninfo, ideas — right from inside the app.\nKola, Your Business Assistant — a built-in assistant that helps you navigate the\napp, create invoices, and manage customers by voice or text.\nBank-Level Account Security — real email verification, secure sign-in with Google or\nemail, and password recovery built in.\nBuilt for Nigeria — designed around how Nigerian small businesses actually work, from\nthe ground up.",
-      "imageUrl": "https://res.cloudinary.com/vhbxqrzq/image/upload/v1789558350/dee-maker-uploads/geu0mbkax8tpersgnlvz.png",
-      "videoUrl": "",
-      "downloadUrl": "https://mega.nz/file/yionhTCD#lcbrk_2LDz3Z0h39bKN1Les_OQU6oYXazmyKgJNf3bY",
-      "fileName": "Paytrack.v.1.0",
-      "techStack": [
-        "HTML",
-        "CSS....."
-      ],
-      "createdAt": "2026-09-16T11:32:47.145Z"
-    }
-  ],
+  "portfolio": [],
   "caseStudies": [
     {
       "id": "cs-1",
@@ -186,11 +170,37 @@
       "_nanoseconds": 578000000
     },
     "logs": [
+      "2026-09-30T14:38:27.886Z - Email sent to deemakers01@gmail.com",
+      "2026-09-28T14:01:04.925Z - Email sent to deemakers01@gmail.com",
       "2026-09-28T13:58:05.364Z - Email sent to deemakers01@gmail.com",
       "2026-07-23T16:20:00.000Z - Email alert sent for new request 'BrightCafes Mobile Order' from Sarah Jenkins"
     ]
   },
-  "bookings": [],
+  "bookings": [
+    {
+      "id": "call-1790779107483",
+      "name": "Test User",
+      "email": "test@example.com",
+      "phone": "+1234567890",
+      "date": "Wed, Oct 01",
+      "time": "10:30 AM",
+      "topic": "Mobile App Architecture",
+      "status": "New",
+      "createdAt": "2026-09-30T14:38:27.483Z"
+    },
+    {
+      "id": "call-1790604064182",
+      "name": "David",
+      "email": "deemakers101@gmail.com",
+      "phone": "09070392028",
+      "date": "Wed, Sep 30",
+      "time": "09:00 AM",
+      "topic": "Android app",
+      "status": "New",
+      "createdAt": "2026-09-28T14:01:04.182Z"
+    }
+  ],
+  "pushSubscriptions": [],
   "myApps": [
     {
       "id": "myapp-1789558518604",

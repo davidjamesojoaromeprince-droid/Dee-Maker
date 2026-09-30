@@ -24,10 +24,12 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, doc, getDoc, query, orderBy } from 'firebase/firestore';
 import { initialDefaultData } from './lib/initialData';
 import { fadeInReveal, staggerContainer, tapScale, liquidHover, springTransition, pageFadeIn } from './lib/motionPresets';
+import { registerServiceWorker } from './pushSetup';
 
 export default function App() {
   const [isProducerPortalOpen, setIsProducerPortalOpen] = useState(false);
   const [isProducerUnlocked, setIsProducerUnlocked] = useState(false);
+  const [producerInitialTab, setProducerInitialTab] = useState<'requests' | 'bookings' | 'questions' | 'portfolio' | 'my-apps' | 'pricing' | 'about' | 'testimonials' | 'faqs' | 'feedback' | 'email' | undefined>(undefined);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isIntakeOpen, setIsIntakeOpen] = useState(false);
   const [isBookCallOpen, setIsBookCallOpen] = useState(false);
@@ -70,6 +72,23 @@ export default function App() {
     });
     return () => unsubscribe();
   }, [pendingIntakeConfig]);
+
+  useEffect(() => {
+    // Register Web Push Service Worker
+    registerServiceWorker();
+
+    // Check for push notification navigation query params (?openProducer=true&tab=...)
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('openProducer') === 'true') {
+        setIsProducerPortalOpen(true);
+        const tab = params.get('tab');
+        if (tab) {
+          setProducerInitialTab(tab as any);
+        }
+      }
+    } catch (_) {}
+  }, []);
 
   const handleOpenIntake = (config?: { tier?: string; appName?: string; description?: string; projectType?: 'app' | 'website' }) => {
     if (!auth.currentUser) {
@@ -678,6 +697,7 @@ export default function App() {
             isUnlocked={isProducerUnlocked}
             onUnlockSuccess={() => setIsProducerUnlocked(true)}
             onDataUpdated={fetchPublicData}
+            initialTab={producerInitialTab}
           />
         )}
       </AnimatePresence>

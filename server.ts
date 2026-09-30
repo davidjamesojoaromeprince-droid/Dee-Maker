@@ -8,6 +8,7 @@ import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
+import webpush from "web-push";
 
 const PORT = 3000;
 const DATA_FILE = path.join(process.cwd(), "data", "db.json");
@@ -384,6 +385,7 @@ const defaultDb = {
     ]
   },
   bookings: [],
+  pushSubscriptions: [],
   myApps: [],
   pricingTiers: [
     {
@@ -447,7 +449,8 @@ async function getDb(): Promise<any> {
         settingsDoc,
         questionsSnap,
         siteDataDoc,
-        bookingsSnap
+        bookingsSnap,
+        pushDoc
       ] = await Promise.all([
         admin.db.collection("about").doc("main").get(),
         admin.db.collection("portfolio").orderBy("createdAt", "desc").get(),
@@ -461,7 +464,8 @@ async function getDb(): Promise<any> {
         admin.db.collection("settings").doc("email").get(),
         admin.db.collection("intake_questions").get(),
         admin.db.collection("siteData").doc("main").get(),
-        admin.db.collection("call_bookings").orderBy("createdAt", "desc").get().catch(() => ({ docs: [] } as any))
+        admin.db.collection("call_bookings").orderBy("createdAt", "desc").get().catch(() => ({ docs: [] } as any)),
+        admin.db.collection("settings").doc("push").get().catch(() => null)
       ]);
 
       const siteData = siteDataDoc?.exists ? siteDataDoc.data() : {};
@@ -469,6 +473,10 @@ async function getDb(): Promise<any> {
       if (siteData?.heroVideoUrl !== undefined) {
         aboutObj.heroVideoUrl = siteData.heroVideoUrl;
       }
+
+      const pushSubscriptionsList = pushDoc?.exists && Array.isArray((pushDoc.data() as any)?.subscriptions)
+        ? (pushDoc.data() as any).subscriptions
+        : (cachedDb?.pushSubscriptions || defaultDb.pushSubscriptions || []);
 
       const firestoreData = {
         about: aboutObj,
@@ -481,6 +489,7 @@ async function getDb(): Promise<any> {
         pricingTiers: pricingSnap.docs.map(d => ({ id: d.id, ...d.data() })),
         requests: requestsSnap.docs.map(d => ({ id: d.id, ...d.data() })),
         bookings: bookingsSnap?.docs ? bookingsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() })) : [],
+        pushSubscriptions: pushSubscriptionsList,
         privateFeedback: feedbackSnap.docs.map(d => ({ id: d.id, ...d.data() })),
         emailSettings: settingsDoc.exists ? settingsDoc.data() : defaultDb.emailSettings,
         intakeQuestions: questionsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
@@ -850,6 +859,73 @@ function formatProjectRequestEmailHtml(reqItem: any): string {
 }
 
 
+// Web Push VAPID Configuration
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || "BKZkk7OCivqETNjcWMPuymnTmVmqkNAyMUcDDpUc6qexfOLpKSP4stSNJMkTc3FNEzVvHrFSse7WeJmdv5Rz10w";
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || "lufBksz3vqyPq0kKTGBdncBTjQrbDG262ZMQExUX-jk";
+
+async function sendPushNotification(db: any, title: string, body: string, url: string): Promise<void> {
+  const publicKey = process.env.VAPID_PUBLIC_KEY || VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY || VAPID_PRIVATE_KEY;
+
+  if (!publicKey || !privateKey) {
+    console.log("[Push] Push not configured: missing VAPID keys");
+    return;
+  }
+
+  const businessEmail = (db.emailSettings?.businessEmail || db.emailSettings?.notifyEmail || "deemakers01@gmail.com").trim();
+  const subject = process.env.VAPID_SUBJECT || `mailto:${businessEmail}`;
+
+  try {
+    webpush.setVapidDetails(subject, publicKey, privateKey);
+  } catch (vapidErr) {
+    console.error("[Push] Failed to set VAPID details:", vapidErr);
+    return;
+  }
+
+  const subscriptions = db.pushSubscriptions || [];
+  if (!Array.isArray(subscriptions) || subscriptions.length === 0) {
+    console.log("[Push] No push subscriptions registered.");
+    return;
+  }
+
+  const payload = JSON.stringify({
+    title,
+    body,
+    url
+  });
+
+  const expiredEndpoints: string[] = [];
+
+  await Promise.all(
+    subscriptions.map(async (sub: any) => {
+      try {
+        await webpush.sendNotification(sub, payload);
+        console.log(`[Push] Notification sent to endpoint: ${sub.endpoint ? sub.endpoint.slice(0, 35) : 'unknown'}...`);
+      } catch (err: any) {
+        console.error(`[Push] Failed to send push notification:`, err?.statusCode || err?.message);
+        if (err?.statusCode === 410 || err?.statusCode === 404) {
+          expiredEndpoints.push(sub.endpoint);
+        }
+      }
+    })
+  );
+
+  // Prune expired subscriptions automatically
+  if (expiredEndpoints.length > 0) {
+    db.pushSubscriptions = db.pushSubscriptions.filter(
+      (s: any) => !expiredEndpoints.includes(s.endpoint)
+    );
+    const admin = getFirebaseAdmin();
+    if (admin?.db) {
+      try {
+        await admin.db.collection("settings").doc("push").set({ subscriptions: db.pushSubscriptions }, { merge: true });
+      } catch (_) {}
+    }
+    await saveDb(db);
+    console.log(`[Push] Pruned ${expiredEndpoints.length} expired subscriptions.`);
+  }
+}
+
 async function startServer() {
   const app = express();
   app.use(express.json());
@@ -966,6 +1042,16 @@ Requirements:
       const emailHtml = formatProjectRequestEmailHtml(newRequest);
       await sendNotificationEmail(db, emailSubject, emailHtml);
 
+      // Web Push Notification to Chrome / browser
+      try {
+        const pushTitle = `New request — ${appName}`;
+        const pushBody = `${name} wants a ${selectedPackage || projectType || 'project'}`;
+        const pushUrl = "/?openProducer=true&tab=requests";
+        await sendPushNotification(db, pushTitle, pushBody, pushUrl);
+      } catch (pushErr) {
+        console.error("[Push] Error sending request push notification:", pushErr);
+      }
+
       await saveDb(db);
 
       res.json({
@@ -1018,6 +1104,16 @@ Requirements:
       const emailSubject = `New call request — ${newBooking.name} — ${newBooking.date} ${newBooking.time}`;
       const emailHtml = formatCallBookingEmailHtml(newBooking);
       await sendNotificationEmail(db, emailSubject, emailHtml);
+
+      // Web Push Notification to Chrome / browser
+      try {
+        const pushTitle = `New call booking — ${newBooking.name}`;
+        const pushBody = `${newBooking.date} at ${newBooking.time}`;
+        const pushUrl = "/?openProducer=true&tab=bookings";
+        await sendPushNotification(db, pushTitle, pushBody, pushUrl);
+      } catch (pushErr) {
+        console.error("[Push] Error sending booking push notification:", pushErr);
+      }
 
       await saveDb(db);
 
@@ -1186,6 +1282,85 @@ Requirements:
     } catch (err: any) {
       console.error("Error in DELETE /api/producer/bookings/:id:", err);
       res.status(500).json({ error: "Failed to delete booking." });
+    }
+  });
+
+  // Producer: Get VAPID Public Key for Web Push
+  app.get("/api/producer/vapid-public-key", (req, res) => {
+    const publicKey = process.env.VAPID_PUBLIC_KEY || VAPID_PUBLIC_KEY;
+    res.json({ success: true, publicKey });
+  });
+
+  // Producer: Register Web Push Subscription
+  app.post("/api/producer/push-subscribe", async (req, res) => {
+    try {
+      const { subscription } = req.body;
+      if (!subscription || !subscription.endpoint) {
+        return res.status(400).json({ error: "Invalid subscription object: endpoint is required." });
+      }
+
+      const db = await getDb();
+      if (!Array.isArray(db.pushSubscriptions)) {
+        db.pushSubscriptions = [];
+      }
+
+      // Avoid duplicates
+      const existingIdx = db.pushSubscriptions.findIndex((s: any) => s.endpoint === subscription.endpoint);
+      if (existingIdx >= 0) {
+        db.pushSubscriptions[existingIdx] = subscription;
+      } else {
+        db.pushSubscriptions.push(subscription);
+      }
+
+      const admin = getFirebaseAdmin();
+      if (admin?.db) {
+        try {
+          await admin.db.collection("settings").doc("push").set({ subscriptions: db.pushSubscriptions }, { merge: true });
+        } catch (fsErr) {
+          console.warn("[Firestore] Push subscription write warning:", fsErr);
+        }
+      }
+
+      await saveDb(db);
+      console.log(`[Push] Subscribed device. Total subscriptions: ${db.pushSubscriptions.length}`);
+      return res.json({ success: true, count: db.pushSubscriptions.length });
+    } catch (err: any) {
+      console.error("Error in POST /api/producer/push-subscribe:", err);
+      return res.status(500).json({ error: "Failed to save push subscription." });
+    }
+  });
+
+  // Producer: Remove Web Push Subscription
+  app.delete("/api/producer/push-subscribe", async (req, res) => {
+    try {
+      const endpoint = req.body?.endpoint || req.query?.endpoint;
+      if (!endpoint) {
+        return res.status(400).json({ error: "Subscription endpoint is required." });
+      }
+
+      const db = await getDb();
+      if (!Array.isArray(db.pushSubscriptions)) {
+        db.pushSubscriptions = [];
+      }
+
+      const initialCount = db.pushSubscriptions.length;
+      db.pushSubscriptions = db.pushSubscriptions.filter((s: any) => s.endpoint !== endpoint);
+
+      const admin = getFirebaseAdmin();
+      if (admin?.db) {
+        try {
+          await admin.db.collection("settings").doc("push").set({ subscriptions: db.pushSubscriptions }, { merge: true });
+        } catch (fsErr) {
+          console.warn("[Firestore] Push subscription removal warning:", fsErr);
+        }
+      }
+
+      await saveDb(db);
+      console.log(`[Push] Removed push subscription. Remaining: ${db.pushSubscriptions.length}`);
+      return res.json({ success: true, count: db.pushSubscriptions.length, removed: initialCount - db.pushSubscriptions.length });
+    } catch (err: any) {
+      console.error("Error in DELETE /api/producer/push-subscribe:", err);
+      return res.status(500).json({ error: "Failed to remove push subscription." });
     }
   });
 
